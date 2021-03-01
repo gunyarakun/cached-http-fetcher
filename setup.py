@@ -14,6 +14,8 @@ setuptools.setup(
     extras_require={
         "s3": ["boto3>=1.17.17"],
     },
+    setup_requires=["pytest-runner>=5.3.0"],
+    tests_require=["pytest>=6.2.2", "pytest-cov>=2.11.1"],
     author="Tasuku SUENAGA a.k.a. gunyarakun",
     author_email="tasuku-s-github@titech.ac",
     description="cached image optimizer",
