@@ -14,5 +14,4 @@ def url_per_domain(url_list: Iterable[str]) -> Dict[str, Set[str]]:
                 results[url.netloc] = {url.geturl()}
         except ValueError:
             pass
-    print(results)
     return results
