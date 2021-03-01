@@ -19,7 +19,7 @@ def requests_get(url):
         url.strip(),
         headers=HEADERS, verify=False, allow_redirects=True, stream=True, timeout=10)
     if response.status_code != 200:
-        raise Exception(f"API response: {response.status_code)}")
+        raise Exception(f"API response: {response.status_code}")
     return response
 
 
