@@ -1,11 +1,11 @@
 import pytest
 
-from url_list import url_per_domain
+from url_list import urls_per_domain
 
 def test_url_list(url_list):
     assert len(url_list) == 8
 
-    result = url_per_domain(url_list)
+    result = urls_per_domain(url_list)
 
     assert set(result.keys()) == {'domain1.example.com', 'domain2.example.com', 'domain3.example.com'}
 
