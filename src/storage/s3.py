@@ -43,3 +43,6 @@ class S3Storage(StorageBase):
             # FIXME: set proper expire
             config["CacheControl"] = "FIXME"
         self.client.put_object(**config)
+
+    def url_from_key(self, key: str) -> str:
+        raise NotImplementedError

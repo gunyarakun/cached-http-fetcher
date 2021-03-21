@@ -20,3 +20,6 @@ class RedisStorage(StorageBase):
             # FIXME: set proper expire
             config["CacheControl"] = expire
         return self.client.put_object(**config)
+
+    def url_from_key(self, key: str) -> str:
+        raise NotImplementedError

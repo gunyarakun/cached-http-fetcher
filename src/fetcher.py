@@ -6,6 +6,7 @@ from dataclasses import dataclass
 from ratelimit import limits, RateLimitException
 
 from .storage.base import StorageBase
+from .requests import requests_get
 
 @dataclass(frozen=True)
 class FetchedImage:
@@ -14,12 +15,11 @@ class FetchedImage:
 
 
 class FetchWorker(multiprocessing.Process):
-    def __init__(self, url_queue, image_queue, meta_storage, image_storage):
+    def __init__(self, url_queue, image_queue, meta_storage):
         super().__init__()
         self._url_queue = url_queue
         self._image_queue = image_queue
         self._meta_storage = meta_storage
-        self._image_storage = image_storage
         self._logger = multiprocessing.get_logger()
 
 
@@ -31,7 +31,7 @@ class FetchWorker(multiprocessing.Process):
 
             for url in url_set:
                 try:
-                    response = requests_get(url)
+                    response = requests_get(url, meta_storage)
                     self._image_queue.put(FetchedImage(url=url, image=response.content))
                 except requests.RequestException as e:
                     self._logger.warning(str(e))
@@ -40,9 +40,11 @@ class FetchWorker(multiprocessing.Process):
 
 
 class OptimizeWorker(multiprocessing.Process):
-    def __init__(self, image_queue):
+    def __init__(self, image_queue, meta_storage, image_storage):
         super().__init__()
         self._image_queue = image_queue
+        self._meta_storage = meta_storage
+        self._image_storage = image_storage
         self._logger = multiprocessing.get_logger()
 
 
@@ -52,8 +54,20 @@ class OptimizeWorker(multiprocessing.Process):
             if fetched_image is None:
                 break
 
-            print(f"optimize: {fetched_image.url}")
-            self._logger.info(f"optimize: {fetched_image.url}")
+            # TODO: Optimize the image
+            optimized_image = fetched_image.image
+
+            # Save the image
+            key_in_image_storage = fetched_image.url # FIXME: calc key from url
+            self._image_storage.put(key_in_image_storage, optimized_image)
+
+            # Save the meta info
+            url_for_saved_image = sel._image_storage.url_from_key(key_in_image_storage)
+            meta_storage.put(fetched_image.url, {
+                source: url,
+                optimized: url_for_saved_image,
+                # TODO: Add some meta info for checking cache is valid or not
+            })
 
 
 def fetch_images(url_dict: Dict[str, Set[str]], *, meta_storage: StorageBase, image_storage: StorageBase, logger):

@@ -1,6 +1,10 @@
 from backoff import on_exception, expo
+from requests import Request
 from requests.structures import CaseInsensitiveDict
 
+from .storage.base import StorageBase
+
+# Ignore some warnings
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
 warnings.simplefilter("ignore", UserWarning)
 warnings.simplefilter("ignore", InsecureRequestWarning)
@@ -11,7 +15,9 @@ HEADERS = {
 
 @on_exception(expo, RateLimitException, max_tries=8)
 @limits(calls=10, period=60) # 10 requests per 1 minute
-def requests_get(url):
+def requests_get(url: str, meta_storage: StorageBase) -> Request:
+    # TODO: cache with meta_storage
+
     response = requests.get(
         url,
         headers=HEADERS, verify=False, allow_redirects=True, stream=True, timeout=10)

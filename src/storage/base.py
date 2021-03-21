@@ -9,3 +9,7 @@ class StorageBase(ABC):
     def put(self, key: str, value: bytes, expire=None) -> None:
         # expire in seconds
         pass
+
+    @abstractmethod
+    def url_from_key(self, key: str) -> str:
+        pass
