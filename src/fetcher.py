@@ -1,10 +1,9 @@
 from typing import Dict, Set, Iterable
-import requests
 import multiprocessing
 from dataclasses import dataclass
 
 from storage import StorageBase
-from request import requests_get
+from request import requests_get, RequestException
 
 @dataclass(frozen=True)
 class FetchedImage:
@@ -29,9 +28,9 @@ class FetchWorker(multiprocessing.Process):
 
             for url in url_set:
                 try:
-                    response = requests_get(url, meta_storage)
+                    response = requests_get(url, self._meta_storage)
                     self._image_queue.put(FetchedImage(url=url, image=response.content))
-                except requests.RequestException as e:
+                except RequestException as e:
                     self._logger.warning(str(e))
                 except Exception as e:
                     self._logger.warning(str(e))
@@ -61,7 +60,7 @@ class OptimizeWorker(multiprocessing.Process):
 
             # Save the meta info
             url_for_saved_image = sel._image_storage.url_from_key(key_in_image_storage)
-            meta_storage.put(fetched_image.url, {
+            self._meta_storage.put(fetched_image.url, {
                 source: url,
                 optimized: url_for_saved_image,
                 # TODO: Add some meta info for checking cache is valid or not

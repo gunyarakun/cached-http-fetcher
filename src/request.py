@@ -1,5 +1,6 @@
 from backoff import on_exception, expo
-from requests import Request
+import requests
+from requests import RequestException
 from requests.structures import CaseInsensitiveDict # For headers
 from ratelimit import limits, RateLimitException
 
@@ -17,7 +18,7 @@ HEADERS = {
 
 @on_exception(expo, RateLimitException, max_tries=8)
 @limits(calls=10, period=60) # 10 requests per 1 minute
-def requests_get(url: str, meta_storage: StorageBase) -> Request:
+def requests_get(url: str, meta_storage: StorageBase) -> requests.Request:
     # TODO: cache with meta_storage
 
     response = requests.get(

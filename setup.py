@@ -20,6 +20,7 @@ setuptools.setup(
         "pytest-cov>=2.11.1",
         "pytest-mock>=3.5.1",
         "requests-mock>=1.8.0",
+        "responses>=0.13.1",
     ],
     author="Tasuku SUENAGA a.k.a. gunyarakun",
     author_email="tasuku-s-github@titech.ac",

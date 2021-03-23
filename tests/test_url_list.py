@@ -3,7 +3,7 @@ import pytest
 from url_list import urls_per_domain
 
 def test_url_list(url_list):
-    assert len(url_list) == 8
+    assert len(url_list) == 9
 
     result = urls_per_domain(url_list)
 
@@ -12,6 +12,7 @@ def test_url_list(url_list):
     assert result['domain1.example.com'] == {
         "http://domain1.example.com/image.jpg",
         "https://domain1.example.com/image.jpg",
+        "https://domain1.example.com/large_image.jpg",
         "https://domain1.example.com/path/image.jpg",
     }
     assert result['domain2.example.com'] == {
