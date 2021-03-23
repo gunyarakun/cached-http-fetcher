@@ -1,10 +1,12 @@
 from backoff import on_exception, expo
 from requests import Request
-from requests.structures import CaseInsensitiveDict
+from requests.structures import CaseInsensitiveDict # For headers
+from ratelimit import limits, RateLimitException
 
-from .storage.base import StorageBase
+from storage import StorageBase
 
 # Ignore some warnings
+import warnings
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
 warnings.simplefilter("ignore", UserWarning)
 warnings.simplefilter("ignore", InsecureRequestWarning)

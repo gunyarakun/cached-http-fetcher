@@ -1,12 +1,10 @@
 from typing import Dict, Set, Iterable
-import warnings
 import requests
 import multiprocessing
 from dataclasses import dataclass
-from ratelimit import limits, RateLimitException
 
-from .storage.base import StorageBase
-from .requests import requests_get
+from storage import StorageBase
+from request import requests_get
 
 @dataclass(frozen=True)
 class FetchedImage:
@@ -82,12 +80,12 @@ def fetch_images(url_dict: Dict[str, Set[str]], *, meta_storage: StorageBase, im
     num_optimizer = multiprocessing.cpu_count()
 
     for i in range(num_fetcher):
-        p = FetchWorker(url_queue, image_queue)
+        p = FetchWorker(url_queue, image_queue, meta_storage)
         fetch_jobs.append(p)
         p.start()
 
     for i in range(num_optimizer):
-        p = OptimizeWorker(image_queue)
+        p = OptimizeWorker(image_queue, meta_storage, image_storage)
         optimize_jobs.append(p)
         p.start()
 

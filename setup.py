@@ -18,6 +18,7 @@ setuptools.setup(
     tests_require=[
         "pytest>=6.2.2",
         "pytest-cov>=2.11.1",
+        "pytest-mock>=3.5.1",
         "requests-mock>=1.8.0",
     ],
     author="Tasuku SUENAGA a.k.a. gunyarakun",
