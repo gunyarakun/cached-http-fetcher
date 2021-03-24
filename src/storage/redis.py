@@ -1,14 +1,8 @@
 from .base import StorageBase
-from redis import Redis
 
 class RedisStorage(StorageBase):
-    def __init__(self, **kwargs):
-        if "url" in kwargs:
-            self.client = Redis.from_url(kwargs["url"])
-        elif "host" in kwargs and "port" in kwargs and "db" in kwargs:
-            self.client = Redis(**kwargs)
-        else:
-            raise ValueError
+    def __init__(self, *, redis_client):
+        self.client = redis_client
 
     def get(self, key: str) -> bytes:
         self.client.get(key)

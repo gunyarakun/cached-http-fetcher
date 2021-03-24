@@ -1,31 +1,12 @@
 from .base import StorageBase
-import boto3
-
-MAX_POOL_CONNECTIONS= 100
 
 class S3Storage(StorageBase):
-    def __init__(self, **kwargs):
-        aws_access_key_id = kwargs["aws_access_key_id"]
-        aws_secret_access_key = kwargs["aws_secret_access_key"]
-        bucket = kwargs["bucket"]
-
+    def __init__(self, *, bucket: str, boto3_s3_client):
         if not bucket:
             raise ValueError
 
-        if aws_access_key_id and aws_secret_access_key:
-            self.client = boto3.client(
-                "s3",
-                aws_access_key_id=aws_access_key_id,
-                aws_secret_access_key=aws_secret_access_key,
-                config=Config(max_pool_connections=MAX_POOL_CONNECTIONS)
-            )
-        else:
-            self.client = boto3.client(
-                "s3",
-                config=Config(max_pool_connections=MAX_POOL_CONNECTIONS)
-            )
-
         self.bucket = bucket
+        self.client = boto3_s3_client
 
     def get(self, key: str) -> bytes:
         try:

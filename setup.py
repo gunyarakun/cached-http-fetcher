@@ -12,7 +12,6 @@ setuptools.setup(
         "Pillow>=8.1.0",
     ],
     extras_require={
-        "s3": ["boto3>=1.17.17"],
     },
     setup_requires=["pytest-runner>=5.3.0"],
     tests_require=[
