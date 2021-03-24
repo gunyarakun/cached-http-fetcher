@@ -22,5 +22,5 @@ def test_fetch_images(images, logger, requests_mock):
     image_storage = image_memory_storage.dict_for_debug()
 
     assert len(requests_mock.calls) == len(images)
-    assert len(meta_storage) == 9
-    assert len(image_storage) == 9
+    assert len(meta_storage) == len(images)
+    assert len(image_storage) == len(images)
