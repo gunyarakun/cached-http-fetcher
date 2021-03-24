@@ -87,9 +87,11 @@ def fetch_images_single(url_dict: Dict[str, Set[str]], *, meta_storage: StorageB
     url_queue.put(None)
     fw = FetchWorker(url_queue, image_queue, meta_storage)
     fw.run()
+    fw.close()
     image_queue.put(None)
     ow = OptimizeWorker(image_queue, meta_storage, image_storage)
     ow.run()
+    ow.close()
 
 
 def fetch_images(url_dict: Dict[str, Set[str]], *, meta_storage: StorageBase, image_storage: StorageBase, num_fetcher: Optional[int] = None, num_optimizer: Optional[int] = None, logger):

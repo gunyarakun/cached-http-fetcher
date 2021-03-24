@@ -83,7 +83,6 @@ def images():
 
 @pytest.fixture(scope="session", autouse=True)
 def logger() -> Iterable[str]:
-
     l = getLogger(__name__)
     handler = StreamHandler()
     handler.setLevel(DEBUG)
