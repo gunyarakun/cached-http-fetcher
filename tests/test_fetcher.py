@@ -1,7 +1,7 @@
 import pytest
 
 from url_list import urls_per_domain
-from fetcher import fetch_images
+from fetcher import fetch_images, fetch_images_single
 from storage import MemoryStorage
 
 
@@ -17,4 +17,4 @@ def test_fetch_images(images, logger, requests_mock):
         )
 
     # FIXME: multiprocessing mock
-    fetch_images(url_dict, meta_storage=meta_memory_storage, image_storage=image_memory_storage, logger=logger)
+    fetch_images_single(url_dict, meta_storage=meta_memory_storage, image_storage=image_memory_storage, logger=logger)

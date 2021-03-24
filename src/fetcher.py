@@ -1,6 +1,7 @@
-from typing import Dict, Set, Iterable
+import json
 import multiprocessing
 from dataclasses import dataclass
+from typing import Dict, Set, Iterable, Optional
 
 from storage import StorageBase
 from request import requests_get, RequestException
@@ -59,24 +60,46 @@ class OptimizeWorker(multiprocessing.Process):
             self._image_storage.put(key_in_image_storage, optimized_image)
 
             # Save the meta info
-            url_for_saved_image = sel._image_storage.url_from_key(key_in_image_storage)
-            self._meta_storage.put(fetched_image.url, {
-                source: url,
-                optimized: url_for_saved_image,
+            url_for_saved_image = self._image_storage.url_from_key(key_in_image_storage)
+            self._meta_storage.put(fetched_image.url, json.dumps({
+                "source": fetched_image.url,
+                "optimized": url_for_saved_image,
                 # TODO: Add some meta info for checking cache is valid or not
-            })
+            }))
 
 
-def fetch_images(url_dict: Dict[str, Set[str]], *, meta_storage: StorageBase, image_storage: StorageBase, logger):
+def url_queue_from_dict(url_dict: Dict[str, Set[str]]) -> multiprocessing.Queue:
+    url_queue = multiprocessing.Queue()
+    url_count = 0
+    for domain, url_set in url_dict.items():
+        url_queue.put(url_set)
+        url_count += len(url_set)
+    return url_queue
+
+
+def fetch_images_single(url_dict: Dict[str, Set[str]], *, meta_storage: StorageBase, image_storage: StorageBase, logger):
+    '''
+        For testing, single process
+    '''
+    url_queue = url_queue_from_dict(url_dict)
+    image_queue = multiprocessing.Queue()
+
+    url_queue.put(None)
+    fw = FetchWorker(url_queue, image_queue, meta_storage)
+    fw.run()
+    image_queue.put(None)
+    ow = OptimizeWorker(image_queue, meta_storage, image_storage)
+    ow.run()
+
+
+def fetch_images(url_dict: Dict[str, Set[str]], *, meta_storage: StorageBase, image_storage: StorageBase, num_fetcher: Optional[int] = None, num_optimizer: Optional[int] = None, logger):
     fetch_jobs = []
     optimize_jobs = []
-    url_queue = multiprocessing.Queue()
+    url_queue = url_queue_from_dict(url_dict)
     image_queue = multiprocessing.Queue()
-    log_queue = multiprocessing.Queue()
 
-    num_fetcher = multiprocessing.cpu_count() * 4
-    num_fetcher = 1
-    num_optimizer = multiprocessing.cpu_count()
+    num_fetcher = num_fetcher or multiprocessing.cpu_count() * 4
+    num_optimizer = num_optimizer or multiprocessing.cpu_count()
 
     for i in range(num_fetcher):
         p = FetchWorker(url_queue, image_queue, meta_storage)
@@ -88,19 +111,12 @@ def fetch_images(url_dict: Dict[str, Set[str]], *, meta_storage: StorageBase, im
         optimize_jobs.append(p)
         p.start()
 
-    url_count = 0
-    for domain, url_set in url_dict.items():
-        url_queue.put(url_set)
-        url_count += len(url_set)
-
     for j in fetch_jobs:
         url_queue.put(None)
 
     # Wait for fetching all the images
     for j in fetch_jobs:
         j.join()
-
-    logger.info(f"Fetched all urls: {url_count}")
 
     # Now nobody puts an item into `image_queue`, so we adds a terminator.
     for j in optimize_jobs:
