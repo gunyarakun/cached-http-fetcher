@@ -12,3 +12,6 @@ class MemoryStorage(StorageBase):
 
     def url_from_key(self, key: str) -> str:
         return f'memory:{key}'
+
+    def dict_for_debug(self) -> dict:
+        return self.dict

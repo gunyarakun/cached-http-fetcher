@@ -16,5 +16,11 @@ def test_fetch_images(images, logger, requests_mock):
             requests_mock.GET, url, body=obj['image']
         )
 
-    # FIXME: multiprocessing mock
     fetch_images_single(url_dict, meta_storage=meta_memory_storage, image_storage=image_memory_storage, logger=logger)
+
+    meta_storage = meta_memory_storage.dict_for_debug()
+    image_storage = image_memory_storage.dict_for_debug()
+
+    assert len(requests_mock.calls) == len(images)
+    assert len(meta_storage) == 9
+    assert len(image_storage) == 9
