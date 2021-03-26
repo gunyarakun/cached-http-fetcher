@@ -24,6 +24,7 @@ class FetchWorker(multiprocessing.Process):
 
             for url in url_set:
                 try:
+                    # FIXME: rate limit
                     fetched_response = requests_get(url, self._meta_storage)
                     # fetched_response can be None when we don't need to fetch the cache
                     if fetched_response is not None:

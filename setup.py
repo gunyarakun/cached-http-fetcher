@@ -8,8 +8,6 @@ setuptools.setup(
     version="0.0.1",
     install_requires=[
         "requests>=2.25.1",
-        "ratelimit>=2.2.1",
-        "Pillow>=8.1.0",
     ],
     extras_require={
     },

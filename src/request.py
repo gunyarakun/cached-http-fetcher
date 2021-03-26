@@ -4,7 +4,6 @@ import requests
 from requests import RequestException
 from requests.structures import CaseInsensitiveDict # For headers
 from backoff import on_exception, expo
-from ratelimit import limits, RateLimitException
 
 from storage import StorageBase
 from model import FetchedResponse
@@ -25,8 +24,10 @@ def url_normalize(url: str) -> str:
     return url
 
 
-@on_exception(expo, RateLimitException, max_tries=8)
-@limits(calls=10, period=60) # 10 requests per 1 minute
+@on_exception(expo,
+              (requests.exceptions.Timeout,
+               requests.exceptions.ConnectionError),
+              max_tries=4)
 def requests_get(url: str, meta_storage: StorageBase) -> Optional[requests.Request]:
     norm_url = url_normalize(url)
 
