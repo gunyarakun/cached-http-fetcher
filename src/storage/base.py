@@ -17,7 +17,7 @@ class StorageBase(ABC):
 
 class ContentStorageBase(StorageBase):
     @abstractmethod
-    def put_content(self, key: str, value: bytes, content_type: str = None, expire: Optional[int] = None) -> None:
+    def put_content(self, key: str, value: bytes, content_type: Optional[str] = None, expire: Optional[int] = None) -> None:
         pass
 
     @abstractmethod
