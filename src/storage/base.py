@@ -11,5 +11,5 @@ class StorageBase(ABC):
         pass
 
     @abstractmethod
-    def url_from_key(self, key: str) -> str:
+    def delete(self, key: str) -> None:
         pass

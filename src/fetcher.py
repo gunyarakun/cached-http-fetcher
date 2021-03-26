@@ -1,22 +1,17 @@
 import json
+import pickle
 import multiprocessing
-from dataclasses import dataclass
 from typing import Dict, Set, Iterable, Optional
 
+from model import Meta
 from storage import StorageBase
 from request import requests_get, RequestException
 
-@dataclass(frozen=True)
-class FetchedImage:
-    url: str
-    image: bytes
-
-
 class FetchWorker(multiprocessing.Process):
-    def __init__(self, url_queue, image_queue, meta_storage):
+    def __init__(self, url_queue, response_queue, meta_storage):
         super().__init__()
         self._url_queue = url_queue
-        self._image_queue = image_queue
+        self._response_queue = response_queue
         self._meta_storage = meta_storage
         self._logger = multiprocessing.get_logger()
 
@@ -29,8 +24,10 @@ class FetchWorker(multiprocessing.Process):
 
             for url in url_set:
                 try:
-                    response = requests_get(url, self._meta_storage)
-                    self._image_queue.put(FetchedImage(url=url, image=response.content))
+                    fetched_response = requests_get(url, self._meta_storage)
+                    # fetched_response can be None when we don't need to fetch the cache
+                    if fetched_response is not None:
+                        self._response_queue.put(fetched_response)
                 except RequestException as e:
                     self._logger.warning(str(e))
                 except Exception as e:
@@ -38,34 +35,35 @@ class FetchWorker(multiprocessing.Process):
 
 
 class OptimizeWorker(multiprocessing.Process):
-    def __init__(self, image_queue, meta_storage, image_storage):
+    def __init__(self, response_queue, meta_storage, cache_storage):
         super().__init__()
-        self._image_queue = image_queue
+        self._response_queue = response_queue
         self._meta_storage = meta_storage
-        self._image_storage = image_storage
+        self._cache_storage = cache_storage
         self._logger = multiprocessing.get_logger()
 
 
     def run(self):
         while True:
-            fetched_image = self._image_queue.get()
-            if fetched_image is None:
+            fetched_response = self._response_queue.get()
+            if fetched_response is None:
                 break
 
-            # TODO: Optimize the image
-            optimized_image = fetched_image.image
+            # TODO: Apply filters to the cache
+            filtered_response = fetched_response.response
 
-            # Save the image
-            key_in_image_storage = fetched_image.url # FIXME: calc key from url
-            self._image_storage.put(key_in_image_storage, optimized_image)
+            # Save response content into the cache
+            key_in_cache_storage = fetched_response.url
+            self._cache_storage.put(key_in_cache_storage, filtered_response.content)
 
             # Save the meta info
-            url_for_saved_image = self._image_storage.url_from_key(key_in_image_storage)
-            self._meta_storage.put(fetched_image.url, json.dumps({
-                "source": fetched_image.url,
-                "optimized": url_for_saved_image,
-                # TODO: Add some meta info for checking cache is valid or not
-            }))
+            url_for_saved_cache = self._cache_storage.url_from_key(key_in_cache_storage)
+            meta = Meta(
+                external_url=url_for_saved_cache,
+                fetched_at=fetched_response.fetched_at,
+                expired_at=fetched_response.expired_at,
+            )
+            self._meta_storage.put(fetched_response.url, pickle.dumps(meta))
 
 
 def url_queue_from_dict(url_dict: Dict[str, Set[str]]) -> multiprocessing.Queue:
@@ -77,53 +75,53 @@ def url_queue_from_dict(url_dict: Dict[str, Set[str]]) -> multiprocessing.Queue:
     return url_queue
 
 
-def fetch_images_single(url_dict: Dict[str, Set[str]], *, meta_storage: StorageBase, image_storage: StorageBase, logger):
+def fetch_urls_single(url_dict: Dict[str, Set[str]], *, meta_storage: StorageBase, cache_storage: StorageBase, logger):
     '''
         For testing, single process
     '''
     url_queue = url_queue_from_dict(url_dict)
-    image_queue = multiprocessing.Queue()
+    response_queue = multiprocessing.Queue()
 
     url_queue.put(None)
-    fw = FetchWorker(url_queue, image_queue, meta_storage)
+    fw = FetchWorker(url_queue, response_queue, meta_storage)
     fw.run()
     fw.close()
-    image_queue.put(None)
-    ow = OptimizeWorker(image_queue, meta_storage, image_storage)
+    response_queue.put(None)
+    ow = OptimizeWorker(response_queue, meta_storage, cache_storage)
     ow.run()
     ow.close()
 
 
-def fetch_images(url_dict: Dict[str, Set[str]], *, meta_storage: StorageBase, image_storage: StorageBase, num_fetcher: Optional[int] = None, num_optimizer: Optional[int] = None, logger):
+def fetch_urls(url_dict: Dict[str, Set[str]], *, meta_storage: StorageBase, cache_storage: StorageBase, num_fetcher: Optional[int] = None, num_optimizer: Optional[int] = None, logger):
     fetch_jobs = []
     optimize_jobs = []
     url_queue = url_queue_from_dict(url_dict)
-    image_queue = multiprocessing.Queue()
+    response_queue = multiprocessing.Queue()
 
     num_fetcher = num_fetcher or multiprocessing.cpu_count() * 4
     num_optimizer = num_optimizer or multiprocessing.cpu_count()
 
     for i in range(num_fetcher):
-        p = FetchWorker(url_queue, image_queue, meta_storage)
+        p = FetchWorker(url_queue, response_queue, meta_storage)
         fetch_jobs.append(p)
         p.start()
 
     for i in range(num_optimizer):
-        p = OptimizeWorker(image_queue, meta_storage, image_storage)
+        p = OptimizeWorker(response_queue, meta_storage, cache_storage)
         optimize_jobs.append(p)
         p.start()
 
     for j in fetch_jobs:
         url_queue.put(None)
 
-    # Wait for fetching all the images
+    # Wait for fetching all the caches
     for j in fetch_jobs:
         j.join()
 
-    # Now nobody puts an item into `image_queue`, so we adds a terminator.
+    # Now nobody puts an item into `response_queue`, so we adds a terminator.
     for j in optimize_jobs:
-        image_queue.put(None)
+        response_queue.put(None)
 
-    # Wait for optimizing all the images
+    # Wait for optimizing all the caches
     for j in optimize_jobs:
         j.join()

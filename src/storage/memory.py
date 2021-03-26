@@ -10,6 +10,9 @@ class MemoryStorage(StorageBase):
     def put(self, key: str, value: bytes, expire=None) -> None:
         self.dict[key] = value
 
+    def delete(self, key: str) -> None:
+        del self.dict[key]
+
     def url_from_key(self, key: str) -> str:
         return f'memory:{key}'
 

@@ -2,7 +2,7 @@ import sys
 from logging import getLogger, StreamHandler, DEBUG
 
 from url_list import urls_per_domain
-from fetcher import fetch_images
+from fetcher import fetch_urls
 
 from .storage.redis import RedisStorage
 from .storage.s3 import S3Storage
@@ -21,8 +21,8 @@ if __name__ == '__main__':
     url_dict = urls_per_domain(url_list)
     logger.debug(url_dict)
     #meta_redis_storage = RedisStorage()
-    #image_s3_storage = S3Storage()
+    #cache_s3_storage = S3Storage()
     meta_memory_storage = MemoryStorage()
-    image_memory_storage = MemoryStorage()
+    cache_memory_storage = MemoryStorage()
 
-    fetch_images(url_dict, meta_storage=meta_memory_storage, image_storage=image_memory_storage, logger=logger)
+    fetch_urls(url_dict, meta_storage=meta_memory_storage, cache_storage=cache_memory_storage, logger=logger)
