@@ -1,3 +1,4 @@
+from typing import Optional
 from .base import StorageBase
 
 class MemoryStorage(StorageBase):
@@ -5,10 +6,21 @@ class MemoryStorage(StorageBase):
         self.dict = {}
 
     def get(self, key: str) -> bytes:
-        return self.dict.get(key, None)
+        v = self.dict.get(key, None)
+        if v is not None:
+            return v["value"]
 
-    def put(self, key: str, value: bytes, expire=None) -> None:
-        self.dict[key] = value
+    def put(self, key: str, value: bytes) -> None:
+        self.dict[key] = {
+            "value": value,
+        }
+
+    def put_for_external(self, key: str, value: bytes, content_type: str = None, expire: Optional[int] = None) -> None:
+        self.dict[key] = {
+            "value": value,
+            "content_type": content_type,
+            "expire": expire,
+        }
 
     def delete(self, key: str) -> None:
         del self.dict[key]

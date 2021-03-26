@@ -32,3 +32,11 @@ def test_fetch_urls_single_memory(images, logger, requests_mock):
     assert len(requests_mock.calls) == len(images)
     assert len(meta_storage) == len(images)
     assert len(cache_storage) == len(images)
+
+    # if meta storage is empty, fetch all images
+    meta_memory_storage = MemoryStorage()
+    fetch_urls_single(url_dict, meta_storage=meta_memory_storage, cache_storage=cache_memory_storage, logger=logger)
+    meta_storage = meta_memory_storage.dict_for_debug()
+    assert len(requests_mock.calls) == len(images) * 2
+    assert len(meta_storage) == len(images)
+    assert len(cache_storage) == len(images)
