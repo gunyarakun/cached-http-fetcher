@@ -11,11 +11,13 @@ class StorageBase(ABC):
         pass
 
     @abstractmethod
-    def put_for_external(self, key: str, value: bytes, content_type: str = None, expire: Optional[int] = None) -> None:
+    def delete(self, key: str) -> None:
         pass
 
+
+class ContentStorageBase(StorageBase):
     @abstractmethod
-    def delete(self, key: str) -> None:
+    def put_content(self, key: str, value: bytes, content_type: str = None, expire: Optional[int] = None) -> None:
         pass
 
     @abstractmethod

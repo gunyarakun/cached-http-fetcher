@@ -1,5 +1,5 @@
 from typing import Optional
-from .base import StorageBase
+from .base import StorageBase, ContentStorageBase
 
 class MemoryStorage(StorageBase):
     def __init__(self, **kwargs):
@@ -15,18 +15,19 @@ class MemoryStorage(StorageBase):
             "value": value,
         }
 
-    def put_for_external(self, key: str, value: bytes, content_type: str = None, expire: Optional[int] = None) -> None:
+    def delete(self, key: str) -> None:
+        del self.dict[key]
+
+    def dict_for_debug(self) -> dict:
+        return self.dict
+
+class ContentMemoryStorage(MemoryStorage, ContentStorageBase):
+    def put_content(self, key: str, value: bytes, content_type: str = None, expire: Optional[int] = None) -> None:
         self.dict[key] = {
             "value": value,
             "content_type": content_type,
             "expire": expire,
         }
 
-    def delete(self, key: str) -> None:
-        del self.dict[key]
-
     def url_from_key(self, key: str) -> str:
         return f'memory:{key}'
-
-    def dict_for_debug(self) -> dict:
-        return self.dict

@@ -47,12 +47,16 @@ def requests_get(url: str, meta_storage: StorageBase) -> Optional[requests.Reque
     if response.status_code != 200:
         raise Exception(f"{response.status_code}: {url}")
 
+    response_headers = CaseInsensitiveDict(response.headers)
+
     # FIXME: calculate expired_at
     expired_at = now + 60 * 60 * 24
+    content_type = response_headers.get('content-type', None)
 
     return FetchedResponse(
         url=url,
         fetched_at=now,
         expired_at=expired_at,
+        content_type=content_type,
         response=response,
     )

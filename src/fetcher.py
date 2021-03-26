@@ -4,7 +4,7 @@ import multiprocessing
 from typing import Dict, Set, Iterable, Optional
 
 from model import Meta
-from storage import StorageBase
+from storage import StorageBase, ContentStorageBase
 from request import requests_get, RequestException
 
 class FetchWorker(multiprocessing.Process):
@@ -55,7 +55,8 @@ class OptimizeWorker(multiprocessing.Process):
 
             # Save response content into the cache
             key_in_cache_storage = fetched_response.url
-            self._cache_storage.put(key_in_cache_storage, filtered_response.content)
+            self._cache_storage.put_content(key_in_cache_storage, filtered_response.content,
+                content_type=fetched_response.content_type, expire=fetched_response.expired_at)
 
             # Save the meta info
             url_for_saved_cache = self._cache_storage.url_from_key(key_in_cache_storage)
@@ -76,7 +77,7 @@ def url_queue_from_dict(url_dict: Dict[str, Set[str]]) -> multiprocessing.Queue:
     return url_queue
 
 
-def fetch_urls_single(url_dict: Dict[str, Set[str]], *, meta_storage: StorageBase, cache_storage: StorageBase, logger):
+def fetch_urls_single(url_dict: Dict[str, Set[str]], *, meta_storage: StorageBase, cache_storage: ContentStorageBase, logger):
     '''
         For testing, single process
     '''
