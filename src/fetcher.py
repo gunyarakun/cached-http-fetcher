@@ -5,7 +5,7 @@ from typing import Dict, Set, Iterable, Optional
 
 from model import Meta
 from storage import StorageBase, ContentStorageBase
-from request import requests_get, RequestException
+from request import cached_requests_get, RequestException
 
 class FetchWorker(multiprocessing.Process):
     def __init__(self, url_queue, response_queue, meta_storage):
@@ -25,7 +25,7 @@ class FetchWorker(multiprocessing.Process):
             for url in url_set:
                 try:
                     # FIXME: rate limit
-                    fetched_response = requests_get(url, self._meta_storage)
+                    fetched_response = cached_requests_get(url, self._meta_storage)
                     # fetched_response can be None when we don't need to fetch the cache
                     if fetched_response is not None:
                         self._response_queue.put(fetched_response)
@@ -71,7 +71,7 @@ class OptimizeWorker(multiprocessing.Process):
 def url_queue_from_dict(url_dict: Dict[str, Set[str]]) -> multiprocessing.Queue:
     url_queue = multiprocessing.Queue()
     url_count = 0
-    for domain, url_set in url_dict.items():
+    for _domain, url_set in url_dict.items():
         url_queue.put(url_set)
         url_count += len(url_set)
     return url_queue
@@ -103,17 +103,17 @@ def fetch_urls(url_dict: Dict[str, Set[str]], *, meta_storage: StorageBase, cach
     num_fetcher = num_fetcher or multiprocessing.cpu_count() * 4
     num_optimizer = num_optimizer or multiprocessing.cpu_count()
 
-    for i in range(num_fetcher):
+    for _ in range(num_fetcher):
         p = FetchWorker(url_queue, response_queue, meta_storage)
         fetch_jobs.append(p)
         p.start()
 
-    for i in range(num_optimizer):
+    for _ in range(num_optimizer):
         p = OptimizeWorker(response_queue, meta_storage, cache_storage)
         optimize_jobs.append(p)
         p.start()
 
-    for j in fetch_jobs:
+    for _ in fetch_jobs:
         url_queue.put(None)
 
     # Wait for fetching all the caches
@@ -121,7 +121,7 @@ def fetch_urls(url_dict: Dict[str, Set[str]], *, meta_storage: StorageBase, cach
         j.join()
 
     # Now nobody puts an item into `response_queue`, so we adds a terminator.
-    for j in optimize_jobs:
+    for _ in optimize_jobs:
         response_queue.put(None)
 
     # Wait for optimizing all the caches

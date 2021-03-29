@@ -1,5 +1,6 @@
 from typing import Optional
 import time
+import pickle
 import requests
 from requests import RequestException
 from requests.structures import CaseInsensitiveDict # For headers
@@ -28,22 +29,33 @@ def url_normalize(url: str) -> str:
               (requests.exceptions.Timeout,
                requests.exceptions.ConnectionError),
               max_tries=4)
-def requests_get(url: str, meta_storage: StorageBase) -> Optional[requests.Request]:
+def requests_get(url: str):
+    response = requests.get(
+        url,
+        headers=HEADERS, verify=False, allow_redirects=True, stream=True, timeout=10)
+    return response
+
+
+def cached_requests_get(url: str, meta_storage: StorageBase) -> Optional[requests.Request]:
     norm_url = url_normalize(url)
 
     now = time.time()
 
-    meta = meta_storage.get(norm_url)
-    if meta is not None:
-        if meta.expired_at < now:
-            meta_storege.delete(norm_url)
-        else:
-            # already cached
-            return None
+    meta_pickled = meta_storage.get(norm_url)
+    if meta_pickled is not None:
+        try:
+            meta = pickle.loads(meta_pickled)
+            if meta.expired_at < now:
+                meta_storage.delete(norm_url)
+            else:
+                # already cached
+                return None
+        except:
+            meta_storage.delete(norm_url)
+            raise
 
-    response = requests.get(
-        url,
-        headers=HEADERS, verify=False, allow_redirects=True, stream=True, timeout=10)
+    print(url)
+    response = requests_get(url)
     if response.status_code != 200:
         raise Exception(f"{response.status_code}: {url}")
 
