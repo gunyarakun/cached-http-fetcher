@@ -4,6 +4,7 @@ import multiprocessing
 from typing import Dict, Set, Iterable, Optional
 
 from model import Meta
+from url_list import urls_per_domain
 from storage import StorageBase, ContentStorageBase
 from request import cached_requests_get, RequestException
 
@@ -68,7 +69,8 @@ class OptimizeWorker(multiprocessing.Process):
             self._meta_storage.put(fetched_response.url, pickle.dumps(meta))
 
 
-def url_queue_from_dict(url_dict: Dict[str, Set[str]]) -> multiprocessing.Queue:
+def url_queue_from_list(url_list: Iterable[str]) -> multiprocessing.Queue:
+    url_dict = urls_per_domain(url_list)
     url_queue = multiprocessing.Queue()
     url_count = 0
     for _domain, url_set in url_dict.items():
@@ -77,11 +79,11 @@ def url_queue_from_dict(url_dict: Dict[str, Set[str]]) -> multiprocessing.Queue:
     return url_queue
 
 
-def fetch_urls_single(url_dict: Dict[str, Set[str]], *, meta_storage: StorageBase, cache_storage: ContentStorageBase, logger):
+def fetch_urls_single(url_list: Iterable[str], *, meta_storage: StorageBase, cache_storage: ContentStorageBase, logger):
     '''
         For testing, single process
     '''
-    url_queue = url_queue_from_dict(url_dict)
+    url_queue = url_queue_from_list(url_list)
     response_queue = multiprocessing.Queue()
 
     url_queue.put(None)
@@ -94,10 +96,10 @@ def fetch_urls_single(url_dict: Dict[str, Set[str]], *, meta_storage: StorageBas
     ow.close()
 
 
-def fetch_urls(url_dict: Dict[str, Set[str]], *, meta_storage: StorageBase, cache_storage: StorageBase, num_fetcher: Optional[int] = None, num_optimizer: Optional[int] = None, logger):
+def fetch_urls(url_list: Iterable[str], *, meta_storage: StorageBase, cache_storage: StorageBase, num_fetcher: Optional[int] = None, num_optimizer: Optional[int] = None, logger):
     fetch_jobs = []
     optimize_jobs = []
-    url_queue = url_queue_from_dict(url_dict)
+    url_queue = url_queue_from_list(url_list)
     response_queue = multiprocessing.Queue()
 
     num_fetcher = num_fetcher or multiprocessing.cpu_count() * 4
