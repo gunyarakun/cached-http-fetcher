@@ -3,10 +3,10 @@ import pickle
 import multiprocessing
 from typing import Dict, Set, Iterable, Optional
 
-from model import Meta
-from url_list import urls_per_domain
-from storage import StorageBase, ContentStorageBase
-from request import cached_requests_get, RequestException
+from .model import Meta
+from .url_list import urls_per_domain
+from .storage import StorageBase, ContentStorageBase
+from .request import cached_requests_get, RequestException
 
 class FetchWorker(multiprocessing.Process):
     def __init__(self, url_queue, response_queue, meta_storage):

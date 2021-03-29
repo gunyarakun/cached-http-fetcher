@@ -6,8 +6,8 @@ from requests import RequestException
 from requests.structures import CaseInsensitiveDict # For headers
 from backoff import on_exception, expo
 
-from storage import StorageBase
-from model import FetchedResponse
+from .storage import StorageBase
+from .model import FetchedResponse
 
 # Ignore some warnings
 import warnings
