@@ -9,6 +9,8 @@ class MemoryStorage(StorageBase):
         return self.dict.get(key, None)
 
     def put(self, key: str, value: bytes) -> None:
+        if type(value) != bytes:
+            raise ValueError
         self.dict[key] = value
 
     def delete(self, key: str) -> None:
