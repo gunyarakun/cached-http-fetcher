@@ -18,8 +18,6 @@ setuptools.setup(
         "pytest-mock>=3.5.1",
         "responses>=0.13.1",
         "Pillow>=8.1.0", # For dummy image generation
-        "fakeredis>=1.5.0",
-        "moto[s3]>=2.0.2",
     ],
     author="Tasuku SUENAGA a.k.a. gunyarakun",
     author_email="tasuku-s-github@titech.ac",

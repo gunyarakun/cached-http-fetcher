@@ -54,7 +54,6 @@ def cached_requests_get(url: str, meta_storage: StorageBase) -> Optional[request
             meta_storage.delete(norm_url)
             raise
 
-    print(url)
     response = requests_get(url)
     if response.status_code != 200:
         raise Exception(f"{response.status_code}: {url}")

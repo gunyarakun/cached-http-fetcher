@@ -39,16 +39,3 @@ def test_fetch_urls_single_memory(images, logger, requests_mock):
     assert len(requests_mock.calls) == len(images) * 2
     assert len(meta_storage) == len(images)
     assert len(cache_storage) == len(images)
-
-
-def test_fetch_urls_single_redis_and_s3(images, logger, requests_mock, redis_storage, content_s3_storage):
-    for url, obj in images.items():
-        requests_mock.add(
-            requests_mock.GET, url, body=obj['image']
-        )
-
-    url_dict = urls_per_domain(images.keys())
-
-    fetch_urls_single(url_dict, meta_storage=redis_storage, cache_storage=content_s3_storage, logger=logger)
-
-    assert len(requests_mock.calls) == len(images)
