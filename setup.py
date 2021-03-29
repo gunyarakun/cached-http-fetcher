@@ -25,8 +25,7 @@ setuptools.setup(
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/gunyarakun/cached-image-optimizer",
-    package_dir={"cached_image_optimizer": "src"},
-    packages=["cached_image_optimizer", "cached_image_optimizer.storage"], # check how to use setuptools.find_packages()
+    packages=setuptools.find_packages(exclude=("tests",)),
     classifiers=[
         "Programming Language :: Python :: 3",
         "License :: OSI Approved :: MIT License",

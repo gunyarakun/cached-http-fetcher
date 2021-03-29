@@ -9,9 +9,9 @@ from PIL import Image
 import responses as responses_
 from logging import getLogger, StreamHandler, DEBUG
 
-from storage import StorageBase, ContentStorageBase
-
 sys.path.append(os.path.abspath(os.path.dirname(os.path.abspath(__file__)) + "/../src/"))
+
+from cached_image_optimizer.storage import StorageBase, ContentStorageBase
 
 IMAGES = {
     "http://domain1.example.com/image.jpg": {
