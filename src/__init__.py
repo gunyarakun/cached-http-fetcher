@@ -1,2 +1,2 @@
 from .fetcher import fetch_urls
-from .storage import StorageBase
+from .storage import StorageBase, ContentStorageBase
