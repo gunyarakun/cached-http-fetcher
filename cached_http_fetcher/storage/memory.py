@@ -29,11 +29,6 @@ class ContentMemoryStorage(ContentStorageBase):
             return v["value"]
         return None
 
-    def put(self, key: str, value: bytes) -> None:
-        self.dict[key] = {
-            "value": value,
-        }
-
     def delete(self, key: str) -> None:
         del self.dict[key]
 

@@ -7,15 +7,23 @@ class StorageBase(ABC):
         pass
 
     @abstractmethod
+    def delete(self, key: str) -> None:
+        pass
+
+    @abstractmethod
     def put(self, key: str, value: bytes) -> None:
+        pass
+
+
+class ContentStorageBase(ABC):
+    @abstractmethod
+    def get(self, key: str) -> Optional[bytes]:
         pass
 
     @abstractmethod
     def delete(self, key: str) -> None:
         pass
 
-
-class ContentStorageBase(StorageBase):
     @abstractmethod
     def put_content(self, key: str, value: bytes, content_type: Optional[str] = None, expire: Optional[int] = None) -> None:
         pass
