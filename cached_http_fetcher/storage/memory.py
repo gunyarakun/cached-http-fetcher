@@ -5,7 +5,7 @@ class MemoryStorage(StorageBase):
     def __init__(self, **kwargs):
         self.dict = {}
 
-    def get(self, key: str) -> bytes:
+    def get(self, key: str) -> Optional[bytes]:
         return self.dict.get(key, None)
 
     def put(self, key: str, value: bytes) -> None:
@@ -23,7 +23,7 @@ class ContentMemoryStorage(ContentStorageBase):
     def __init__(self, **kwargs):
         self.dict = {}
 
-    def get(self, key: str) -> bytes:
+    def get(self, key: str) -> Optional[bytes]:
         v = self.dict.get(key, None)
         if v is not None:
             return v["value"]

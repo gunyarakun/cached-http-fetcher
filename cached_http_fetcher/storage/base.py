@@ -3,7 +3,7 @@ from abc import ABC, abstractmethod
 
 class StorageBase(ABC):
     @abstractmethod
-    def get(self, key: str) -> bytes:
+    def get(self, key: str) -> Optional[bytes]:
         pass
 
     @abstractmethod
