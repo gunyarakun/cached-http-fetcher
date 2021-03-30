@@ -4,7 +4,7 @@ with open("README.md", "r", encoding="utf8") as fh:
     long_description = fh.read()
 
 setuptools.setup(
-    name="cached-image-optimizer",
+    name="cached-http-fetcher",
     version="0.0.1",
     install_requires=[
         "requests>=2.25.1",
@@ -21,10 +21,10 @@ setuptools.setup(
     ],
     author="Tasuku SUENAGA a.k.a. gunyarakun",
     author_email="tasuku-s-github@titech.ac",
-    description="cached image optimizer",
+    description="cached http fetcher",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://github.com/gunyarakun/cached-image-optimizer",
+    url="https://github.com/gunyarakun/cached-http-fetcher",
     packages=setuptools.find_packages(exclude=("tests",)),
     classifiers=[
         "Programming Language :: Python :: 3",

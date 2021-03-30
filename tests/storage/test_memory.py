@@ -1,6 +1,6 @@
 import pytest
 
-from cached_image_optimizer.storage.memory import MemoryStorage
+from cached_http_fetcher.storage.memory import MemoryStorage
 
 def test_memory_storage():
     memory_storage = MemoryStorage()

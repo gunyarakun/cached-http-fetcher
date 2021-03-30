@@ -1,6 +1,6 @@
 import pytest
 
-from cached_image_optimizer.url_list import urls_per_domain
+from cached_http_fetcher.url_list import urls_per_domain
 
 def test_url_list(url_list):
     assert len(url_list) == 9

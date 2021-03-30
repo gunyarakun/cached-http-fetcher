@@ -1,7 +1,7 @@
 import pytest
 
-from cached_image_optimizer.fetcher import fetch_urls, fetch_urls_single
-from cached_image_optimizer.storage import MemoryStorage, ContentMemoryStorage
+from cached_http_fetcher.fetcher import fetch_urls, fetch_urls_single
+from cached_http_fetcher.storage import MemoryStorage, ContentMemoryStorage
 
 
 def test_fetch_urls_single_memory(images, logger, requests_mock):
