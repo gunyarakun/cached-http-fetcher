@@ -5,15 +5,15 @@ class MemoryStorage(StorageBase):
     def __init__(self, **kwargs):
         self.dict = {}
 
-    def get(self, key: str) -> Optional[bytes]:
+    def get(self, source_url: str) -> Optional[bytes]:
         return self.dict.get(key, None)
 
-    def put(self, key: str, value: bytes) -> None:
+    def put(self, source_url: str, value: bytes) -> None:
         if type(value) != bytes:
             raise ValueError
         self.dict[key] = value
 
-    def delete(self, key: str) -> None:
+    def delete(self, source_url: str) -> None:
         del self.dict[key]
 
     def dict_for_debug(self) -> dict:

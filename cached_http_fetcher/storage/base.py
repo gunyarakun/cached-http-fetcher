@@ -3,15 +3,15 @@ from abc import ABC, abstractmethod
 
 class StorageBase(ABC):
     @abstractmethod
-    def get(self, key: str) -> Optional[bytes]:
+    def get(self, source_url: str) -> Optional[bytes]:
         pass
 
     @abstractmethod
-    def delete(self, key: str) -> None:
+    def delete(self, source_url: str) -> None:
         pass
 
     @abstractmethod
-    def put(self, key: str, value: bytes) -> None:
+    def put(self, source_url: str, value: bytes) -> None:
         pass
 
 
