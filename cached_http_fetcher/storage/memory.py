@@ -6,15 +6,15 @@ class MemoryStorage(StorageBase):
         self.dict = {}
 
     def get(self, source_url: str) -> Optional[bytes]:
-        return self.dict.get(key, None)
+        return self.dict.get(source_url, None)
 
     def put(self, source_url: str, value: bytes) -> None:
         if type(value) != bytes:
             raise ValueError
-        self.dict[key] = value
+        self.dict[source_url] = value
 
     def delete(self, source_url: str) -> None:
-        del self.dict[key]
+        del self.dict[source_url]
 
     def dict_for_debug(self) -> dict:
         return self.dict
