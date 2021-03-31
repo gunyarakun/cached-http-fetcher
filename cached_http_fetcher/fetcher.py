@@ -135,5 +135,8 @@ def get_cached_url(url: str, meta_storage: StorageBase) -> Optional[str]:
     meta = get_meta(url, meta_storage)
     if meta is None:
         return None
+    now = time.time()
+    if meta.expired_at <= now:
+        return None
     cached_url = meta.cached_url
     return cached_url

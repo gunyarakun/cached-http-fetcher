@@ -33,15 +33,16 @@ def requests_get(url: str):
 
 def cached_requests_get(url: str, meta_storage: StorageBase) -> Optional[requests.Request]:
     meta = get_meta(url, meta_storage)
+    now = time.time()
 
-    # already cached, so don't request
     if meta is not None:
-        return None
+        if meta.expired_at > now:
+            # already cached and valid, so don't request
+            return None
 
     response = requests_get(url)
     response_headers = CaseInsensitiveDict(response.headers)
 
-    now = time.time()
     # FIXME: calculate expired_at
     if response.status_code != 200:
         expired_at = now + 3600 # 1 hour for non 200
