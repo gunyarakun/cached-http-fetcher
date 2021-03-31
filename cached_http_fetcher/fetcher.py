@@ -35,11 +35,11 @@ class FetchWorker(multiprocessing.Process):
 
 
 class OptimizeWorker(multiprocessing.Process):
-    def __init__(self, response_queue, meta_storage, cache_storage):
+    def __init__(self, response_queue, meta_storage, content_storage):
         super().__init__()
         self._response_queue = response_queue
         self._meta_storage = meta_storage
-        self._cache_storage = cache_storage
+        self._content_storage = content_storage
         self._logger = multiprocessing.get_logger()
 
 
@@ -53,13 +53,13 @@ class OptimizeWorker(multiprocessing.Process):
             filtered_response = fetched_response.response
 
             # Save response content into the cache
-            # TODO: key_in_cache_storage might be different from original url, handling https:// etc
-            key_in_cache_storage = fetched_response.url
-            self._cache_storage.put_content(key_in_cache_storage, filtered_response.content,
+            # TODO: key_in_content_storage might be different from original url, handling https:// etc
+            key_in_content_storage = fetched_response.url
+            self._content_storage.put_content(key_in_content_storage, filtered_response.content,
                 content_type=fetched_response.content_type, expire=fetched_response.expired_at)
 
             # Save the meta info
-            url_for_saved_cache = self._cache_storage.url_from_key(key_in_cache_storage)
+            url_for_saved_cache = self._content_storage.url_from_key(key_in_content_storage)
             put_meta(
                     fetched_response.url, self._meta_storage,
                     external_url=url_for_saved_cache,
@@ -78,7 +78,7 @@ def url_queue_from_list(url_list: Iterable[str]) -> multiprocessing.Queue:
     return url_queue
 
 
-def fetch_urls_single(url_list: Iterable[str], *, meta_storage: StorageBase, cache_storage: ContentStorageBase, logger):
+def fetch_urls_single(url_list: Iterable[str], *, meta_storage: StorageBase, content_storage: ContentStorageBase, logger):
     '''
         For testing, single process
     '''
@@ -90,12 +90,12 @@ def fetch_urls_single(url_list: Iterable[str], *, meta_storage: StorageBase, cac
     fw.run()
     fw.close()
     response_queue.put(None)
-    ow = OptimizeWorker(response_queue, meta_storage, cache_storage)
+    ow = OptimizeWorker(response_queue, meta_storage, content_storage)
     ow.run()
     ow.close()
 
 
-def fetch_urls(url_list: Iterable[str], *, meta_storage: StorageBase, cache_storage: StorageBase, num_fetcher: Optional[int] = None, num_optimizer: Optional[int] = None, logger):
+def fetch_urls(url_list: Iterable[str], *, meta_storage: StorageBase, content_storage: StorageBase, num_fetcher: Optional[int] = None, num_optimizer: Optional[int] = None, logger):
     fetch_jobs = []
     optimize_jobs = []
     url_queue = url_queue_from_list(url_list)
@@ -110,7 +110,7 @@ def fetch_urls(url_list: Iterable[str], *, meta_storage: StorageBase, cache_stor
         p.start()
 
     for _ in range(num_optimizer):
-        p = OptimizeWorker(response_queue, meta_storage, cache_storage)
+        p = OptimizeWorker(response_queue, meta_storage, content_storage)
         optimize_jobs.append(p)
         p.start()
 
