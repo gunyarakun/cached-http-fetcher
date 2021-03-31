@@ -24,23 +24,23 @@ class ContentMemoryStorage(ContentStorageBase):
         self.dict = {}
 
     def get(self, source_url: str) -> Optional[bytes]:
-        v = self.dict.get(key, None)
+        v = self.dict.get(source_url, None)
         if v is not None:
             return v["value"]
         return None
 
     def delete(self, source_url: str) -> None:
-        del self.dict[key]
+        del self.dict[source_url]
 
     def put_content(self, source_url: str, value: bytes, content_type: Optional[str] = None, expire: Optional[int] = None) -> None:
-        self.dict[key] = {
+        self.dict[source_url] = {
             "value": value,
             "content_type": content_type,
             "expire": expire,
         }
 
-    def url_from_key(self, source_url: str) -> str:
-        return f'memory:{key}'
+    def cached_url(self, source_url: str) -> str:
+        return f'memory:{cached_url}'
 
     def dict_for_debug(self) -> dict:
         return self.dict

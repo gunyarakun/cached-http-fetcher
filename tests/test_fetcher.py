@@ -32,7 +32,7 @@ def test_fetch_urls_single_memory(images, logger, requests_mock):
     # get cached urls
     for url in url_list:
         cached_url = get_cached_url(url, meta_memory_storage)
-        assert cached_url == content_memory_storage.url_from_key(url)
+        assert cached_url == content_memory_storage.cached_url(url)
 
     # all images must be cached
     fetch_urls_single(url_list, meta_storage=meta_memory_storage, content_storage=content_memory_storage, logger=logger)

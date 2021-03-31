@@ -29,5 +29,5 @@ class ContentStorageBase(ABC):
         pass
 
     @abstractmethod
-    def url_from_key(self, source_url: str) -> str:
+    def cached_url(self, source_url: str) -> str:
         pass
