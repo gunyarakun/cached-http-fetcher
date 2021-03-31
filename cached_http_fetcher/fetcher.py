@@ -52,17 +52,18 @@ class OptimizeWorker(multiprocessing.Process):
             # TODO: Apply filters to the cache
             filtered_response = fetched_response.response
 
-            # Save response content into the cache
-            # TODO: key_in_content_storage might be different from original url, handling https:// etc
-            key_in_content_storage = fetched_response.url
-            self._content_storage.put_content(key_in_content_storage, filtered_response.content,
-                content_type=fetched_response.content_type, expire=fetched_response.expired_at)
-
+            cached_url = None
+            if filtered_response.status_code == 200:
+                # Save response content into the cache
+                # TODO: key_in_content_storage might be different from original url, handling https:// etc
+                key_in_content_storage = fetched_response.url
+                self._content_storage.put_content(key_in_content_storage, filtered_response.content,
+                    content_type=fetched_response.content_type, expire=fetched_response.expired_at)
+                cached_url = self._content_storage.cached_url(key_in_content_storage)
             # Save the meta info
-            url_for_saved_cache = self._content_storage.url_from_key(key_in_content_storage)
             put_meta(
                     fetched_response.url, self._meta_storage,
-                    external_url=url_for_saved_cache,
+                    cached_url=cached_url,
                     fetched_at=fetched_response.fetched_at,
                     expired_at=fetched_response.expired_at
             )
@@ -134,5 +135,5 @@ def get_cached_url(url: str, meta_storage: StorageBase) -> Optional[str]:
     meta = get_meta(url, meta_storage)
     if meta is None:
         return None
-    cached_url = meta.external_url
+    cached_url = meta.cached_url
     return cached_url

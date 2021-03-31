@@ -40,7 +40,7 @@ class ContentMemoryStorage(ContentStorageBase):
         }
 
     def cached_url(self, source_url: str) -> str:
-        return f'memory:{cached_url}'
+        return f"memory:{source_url}"
 
     def dict_for_debug(self) -> dict:
         return self.dict

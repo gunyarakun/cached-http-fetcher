@@ -4,7 +4,7 @@ from dataclasses import dataclass
 
 @dataclass(frozen=True)
 class Meta:
-    external_url: str
+    cached_url: Optional[str] # None for non 200 responses
     fetched_at: int
     expired_at: int
 

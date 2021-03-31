@@ -39,14 +39,14 @@ def cached_requests_get(url: str, meta_storage: StorageBase) -> Optional[request
         return None
 
     response = requests_get(url)
-    if response.status_code != 200:
-        raise Exception(f"{response.status_code}: {url}")
-
     response_headers = CaseInsensitiveDict(response.headers)
 
-    # FIXME: calculate expired_at
     now = time.time()
-    expired_at = now + 60 * 60 * 24
+    # FIXME: calculate expired_at
+    if response.status_code != 200:
+        expired_at = now + 3600 # 1 hour for non 200
+    else:
+        expired_at = now + 60 * 60 * 24
     content_type = response_headers.get('content-type', None)
 
     return FetchedResponse(

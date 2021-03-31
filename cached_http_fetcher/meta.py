@@ -9,9 +9,9 @@ def url_normalize(url: str) -> str:
     return url
 
 
-def put_meta(url: str, meta_storage: StorageBase, *, external_url: str, fetched_at: int, expired_at: int):
+def put_meta(url: str, meta_storage: StorageBase, *, cached_url: str, fetched_at: int, expired_at: int):
     meta = Meta(
-        external_url=external_url,
+        cached_url=cached_url,
         fetched_at=fetched_at,
         expired_at=expired_at,
     )
