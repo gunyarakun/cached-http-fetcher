@@ -1,9 +1,7 @@
-import json
-import pickle
 import multiprocessing
 from typing import Dict, Set, Iterable, Optional
 
-from .model import Meta
+from .meta import get_meta, put_meta
 from .url_list import urls_per_domain
 from .storage import StorageBase, ContentStorageBase
 from .request import cached_requests_get, RequestException
@@ -55,18 +53,19 @@ class OptimizeWorker(multiprocessing.Process):
             filtered_response = fetched_response.response
 
             # Save response content into the cache
+            # TODO: key_in_cache_storage might be different from original url, handling https:// etc
             key_in_cache_storage = fetched_response.url
             self._cache_storage.put_content(key_in_cache_storage, filtered_response.content,
                 content_type=fetched_response.content_type, expire=fetched_response.expired_at)
 
             # Save the meta info
             url_for_saved_cache = self._cache_storage.url_from_key(key_in_cache_storage)
-            meta = Meta(
-                external_url=url_for_saved_cache,
-                fetched_at=fetched_response.fetched_at,
-                expired_at=fetched_response.expired_at,
+            put_meta(
+                    fetched_response.url, self._meta_storage,
+                    external_url=url_for_saved_cache,
+                    fetched_at=fetched_response.fetched_at,
+                    expired_at=fetched_response.expired_at
             )
-            self._meta_storage.put(fetched_response.url, pickle.dumps(meta))
 
 
 def url_queue_from_list(url_list: Iterable[str]) -> multiprocessing.Queue:
@@ -129,3 +128,11 @@ def fetch_urls(url_list: Iterable[str], *, meta_storage: StorageBase, cache_stor
     # Wait for optimizing all the caches
     for j in optimize_jobs:
         j.join()
+
+
+def get_cached_url(url: str, meta_storage: StorageBase) -> Optional[str]:
+    meta = get_meta(url, meta_storage)
+    if meta is None:
+        return None
+    cached_url = meta.external_url
+    return cached_url

@@ -1,6 +1,5 @@
 from typing import Optional
 import time
-import pickle
 import requests
 from requests import RequestException
 from requests.structures import CaseInsensitiveDict # For headers
@@ -8,6 +7,7 @@ from backoff import on_exception, expo
 
 from .storage import StorageBase
 from .model import FetchedResponse
+from .meta import get_meta
 
 # Ignore some warnings
 import warnings
@@ -18,11 +18,6 @@ warnings.simplefilter("ignore", InsecureRequestWarning)
 HEADERS = {
     "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/88.0.4324.192 Safari/537.36",
 }
-
-
-def url_normalize(url: str) -> str:
-    # TODO: implement
-    return url
 
 
 @on_exception(expo,
@@ -37,22 +32,11 @@ def requests_get(url: str):
 
 
 def cached_requests_get(url: str, meta_storage: StorageBase) -> Optional[requests.Request]:
-    norm_url = url_normalize(url)
+    meta = get_meta(url, meta_storage)
 
-    now = time.time()
-
-    meta_pickled = meta_storage.get(norm_url)
-    if meta_pickled is not None:
-        try:
-            meta = pickle.loads(meta_pickled)
-            if meta.expired_at < now:
-                meta_storage.delete(norm_url)
-            else:
-                # already cached
-                return None
-        except:
-            meta_storage.delete(norm_url)
-            raise
+    # already cached, so don't request
+    if meta is not None:
+        return None
 
     response = requests_get(url)
     if response.status_code != 200:
@@ -61,6 +45,7 @@ def cached_requests_get(url: str, meta_storage: StorageBase) -> Optional[request
     response_headers = CaseInsensitiveDict(response.headers)
 
     # FIXME: calculate expired_at
+    now = time.time()
     expired_at = now + 60 * 60 * 24
     content_type = response_headers.get('content-type', None)
 
