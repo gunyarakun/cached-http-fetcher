@@ -3,6 +3,7 @@ from urllib.parse import urlparse
 
 def urls_per_domain(url_list: Iterable[str]) -> Dict[str, Set[str]]:
     results = {}
+    print("****" + url_list)
     for url_str in url_list:
         try:
             url = urlparse(url_str)
