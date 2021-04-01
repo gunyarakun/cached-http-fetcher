@@ -32,11 +32,11 @@ class ContentMemoryStorage(ContentStorageBase):
     def delete(self, source_url: str) -> None:
         del self.dict[source_url]
 
-    def put_content(self, source_url: str, value: bytes, expires: int, content_type: Optional[str] = None) -> None:
+    def put_content(self, source_url: str, value: bytes, cache_control: str, content_type: Optional[str] = None) -> None:
         self.dict[source_url] = {
             "value": value,
+            "cache_control": cache_control,
             "content_type": content_type,
-            "expires": expires,
         }
 
     def cached_url(self, source_url: str) -> str:
