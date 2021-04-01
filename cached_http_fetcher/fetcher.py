@@ -76,7 +76,7 @@ class OptimizeWorker(multiprocessing.Process):
 
                 # At least 3600 secs to be cached in clients
                 # TODO: configurable
-                max_age = [3600, now - fetched_response.expired_at].max()
+                max_age = max(3600, now - fetched_response.expired_at)
                 key_in_content_storage = fetched_response.url
                 self._content_storage.put_content(key_in_content_storage, filtered_response.content,
                     content_type=fetched_response.content_type, cache_control=f"max_age={max_age}")
