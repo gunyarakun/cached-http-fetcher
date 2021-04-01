@@ -18,8 +18,8 @@ class FetchWorker(multiprocessing.Process):
         self._max_fetch_count = max_fetch_count
         self._fetch_count_window = fetch_count_window
         if self._max_fetch_count == 0 or self._fetch_count_window == 0:
-            self._max_fetch_count = sys.maxint
-            self._fetch_count_window = sys.maxint
+            self._max_fetch_count = sys.maxsize
+            self._fetch_count_window = sys.maxsize
 
 
     def run(self):
@@ -104,7 +104,7 @@ def url_queue_from_list(url_list: Iterable[str]) -> multiprocessing.Queue:
     return url_queue
 
 
-def fetch_urls_single(url_list: Iterable[str], *, meta_storage: StorageBase, content_storage: ContentStorageBase, max_fetch_count: int, fetch_count_window: int, logger) -> None:
+def fetch_urls_single(url_list: Iterable[str], *, meta_storage: StorageBase, content_storage: ContentStorageBase, max_fetch_count: int = 0, fetch_count_window: int = 0, logger) -> None:
     """
     A single process version of fetch_urls()
     """
