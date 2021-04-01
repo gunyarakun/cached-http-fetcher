@@ -1,3 +1,4 @@
+import sys
 import time
 import multiprocessing
 from typing import Dict, Set, Iterable, Optional
@@ -16,6 +17,9 @@ class FetchWorker(multiprocessing.Process):
         self._logger = multiprocessing.get_logger()
         self._max_fetch_count = max_fetch_count
         self._fetch_count_window = fetch_count_window
+        if self._max_fetch_count == 0 or self._fetch_count_window == 0:
+            self._max_fetch_count = sys.maxint
+            self._fetch_count_window = sys.maxint
 
 
     def run(self):
@@ -118,15 +122,15 @@ def fetch_urls_single(url_list: Iterable[str], *, meta_storage: StorageBase, con
     ow.close()
 
 
-def fetch_urls(url_list: Iterable[str], *, meta_storage: StorageBase, content_storage: ContentStorageBase, max_fetch_count: int, fetch_count_window: int, num_fetcher: Optional[int] = None, num_processor: Optional[int] = None, logger) -> None:
+def fetch_urls(url_list: Iterable[str], *, meta_storage: StorageBase, content_storage: ContentStorageBase, max_fetch_count: int = 0, fetch_count_window: int = 0, num_fetcher: Optional[int] = None, num_processor: Optional[int] = None, logger) -> None:
     """
     Fetch urls, store meta data into meta_storage and store cached response body to content_storage
 
     :param url_list: List of urls to be fetched
     :param meta_storage: A storage for meta data, implements StorageBase
     :param content_storage: A storage for response contents, implements ContentStorageBase
-    :param max_fetch_count: A max fetch count in fetch_count_window
-    :param fetch_count_window: Seconds for counting fetch
+    :param max_fetch_count: A max fetch count in fetch_count_window for rate limit. When 0, no rate limit.
+    :param fetch_count_window: Seconds for counting fetch for rate limit. When 0, no rate limit.
     :param num_fetcher: A number of fetcher processes
     :param num_processor: A number of processer processes
     :param logger: Logger

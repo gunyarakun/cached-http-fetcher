@@ -20,7 +20,7 @@ def test_fetch_urls_single_memory(images, logger, requests_mock):
         cached_url = get_cached_url(url, meta_memory_storage)
         assert cached_url is None
 
-    fetch_urls_single(url_list, meta_storage=meta_memory_storage, content_storage=content_memory_storage, max_fetch_count=300, fetch_count_window=300, logger=logger)
+    fetch_urls_single(url_list, meta_storage=meta_memory_storage, content_storage=content_memory_storage, logger=logger)
 
     meta_storage = meta_memory_storage.dict_for_debug()
     content_storage = content_memory_storage.dict_for_debug()
@@ -35,7 +35,7 @@ def test_fetch_urls_single_memory(images, logger, requests_mock):
         assert cached_url == content_memory_storage.cached_url(url)
 
     # all images must be cached
-    fetch_urls_single(url_list, meta_storage=meta_memory_storage, content_storage=content_memory_storage, max_fetch_count=300, fetch_count_window=300, logger=logger)
+    fetch_urls_single(url_list, meta_storage=meta_memory_storage, content_storage=content_memory_storage, logger=logger)
 
     assert len(requests_mock.calls) == len(images)
     assert len(meta_storage) == len(images)
@@ -43,7 +43,7 @@ def test_fetch_urls_single_memory(images, logger, requests_mock):
 
     # if meta storage is empty, fetch all images
     meta_memory_storage = MemoryStorage()
-    fetch_urls_single(url_list, meta_storage=meta_memory_storage, content_storage=content_memory_storage, max_fetch_count=300, fetch_count_window=300, logger=logger)
+    fetch_urls_single(url_list, meta_storage=meta_memory_storage, content_storage=content_memory_storage, logger=logger)
     meta_storage = meta_memory_storage.dict_for_debug()
     assert len(requests_mock.calls) == len(images) * 2
     assert len(meta_storage) == len(images)
