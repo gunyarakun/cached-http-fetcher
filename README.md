@@ -96,3 +96,10 @@ for url in url_list:
     cached_url = cached_http_fetcher.get_cached_url(url, meta_storage)
     print(cached_url)
 ```
+
+## Develop
+
+```
+make test # test
+make dist # release to PyPI
+```
