@@ -59,7 +59,7 @@ class OptimizeWorker(multiprocessing.Process):
                 # TODO: key_in_content_storage might be different from original url, handling https:// etc
                 key_in_content_storage = fetched_response.url
                 self._content_storage.put_content(key_in_content_storage, filtered_response.content,
-                    content_type=fetched_response.content_type, expire=fetched_response.expired_at)
+                    content_type=fetched_response.content_type, expires=fetched_response.expired_at)
                 cached_url = self._content_storage.cached_url(key_in_content_storage)
             # Save the meta info
             put_meta(
