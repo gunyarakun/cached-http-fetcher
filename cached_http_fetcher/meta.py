@@ -1,17 +1,21 @@
 import time
 import pickle
+from typing import Optional
+
 from .model import Meta
 from .storage import StorageBase
 
 
 def url_normalize(url: str) -> str:
-    # TODO: implement
+    # FIXME: implement
     return url
 
 
-def put_meta(url: str, meta_storage: StorageBase, *, cached_url: str, fetched_at: int, expired_at: int):
+def put_meta(url: str, meta_storage: StorageBase, *, cached_url: str, etag: Optional[str], last_modified: Optional[str], fetched_at: int, expired_at: Optional[int]):
     meta = Meta(
         cached_url=cached_url,
+        etag=etag,
+        last_modified=last_modified,
         fetched_at=fetched_at,
         expired_at=expired_at,
     )

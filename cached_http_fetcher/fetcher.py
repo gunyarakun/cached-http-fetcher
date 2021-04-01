@@ -7,6 +7,7 @@ from .meta import get_meta, put_meta
 from .url_list import urls_per_domain
 from .storage import StorageBase, ContentStorageBase
 from .request import cached_requests_get, RequestException
+from .content import put_content
 
 class FetchWorker(multiprocessing.Process):
     def __init__(self, url_queue, response_queue, meta_storage, max_fetch_count, fetch_count_window):
@@ -71,26 +72,21 @@ class OptimizeWorker(multiprocessing.Process):
 
             # TODO: Apply filters to the cache
             filtered_response = fetched_response.response
+            source_url = filtered_response.url
 
+            parsed_header = put_content(filtered_response, self._content_storage)
             cached_url = None
-            if filtered_response.status_code == 200:
-                # Save response content into the cache
-                # TODO: key_in_content_storage might be different from original url, handling https:// etc
-                now = time.time()
+            if parsed_header is not None:
+                cached_url = self._content_storage.cached_url(source_url)
 
-                # At least 3600 secs to be cached in clients
-                # TODO: configurable
-                max_age = max(3600, now - fetched_response.expired_at)
-                key_in_content_storage = fetched_response.url
-                self._content_storage.put_content(key_in_content_storage, filtered_response.content,
-                    content_type=fetched_response.content_type, cache_control=f"max_age={max_age}")
-                cached_url = self._content_storage.cached_url(key_in_content_storage)
-            # Save the meta info
             put_meta(
-                    fetched_response.url, self._meta_storage,
+                    source_url,
+                    self._meta_storage,
                     cached_url=cached_url,
+                    etag=parsed_header.etag,
+                    last_modified=parsed_header.last_modified,
                     fetched_at=fetched_response.fetched_at,
-                    expired_at=fetched_response.expired_at
+                    expired_at=parsed_header.expired_at,
             )
 
 

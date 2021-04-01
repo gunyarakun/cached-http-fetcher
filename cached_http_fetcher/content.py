@@ -1,4 +1,10 @@
+import time
+from typing import Optional
 from requests.structures import CaseInsensitiveDict
+
+from .storage import ContentStorageBase
+from .model import FetchedResponse, ParsedHeader
+
 
 # Ref.) https://tools.ietf.org/html/rfc7234#section-5.2
 CACHE_CONTROL_DIRECTIVES = {
@@ -15,6 +21,7 @@ CACHE_CONTROL_DIRECTIVES = {
     "proxy-revalidate": (None, False),
     "s-maxage": (int, True),
 }
+
 
 def parse_cache_control(headers: CaseInsensitiveDict):
     cache_control = headers.get("cache-control", "")
@@ -45,3 +52,28 @@ def parse_cache_control(headers: CaseInsensitiveDict):
                 pass
 
     return directives
+
+
+def put_content(response: FetchedResponse, content_storage: ContentStorageBase) -> Optional[ParsedHeader]:
+    if response.status_code == 200:
+        now = time.time()
+
+        response_headers = CaseInsensitiveDict(response.headers)
+        content_type = response_headers.get("content-type", None)
+
+        # FIXME: calc max-age
+        max_age = 3600
+
+        content_storage.put_content(
+                response.url,
+                response.content,
+                content_type=content_type,
+                cache_control=f"max_age={max_age}"
+        )
+
+        return ParsedHeader(
+            etag=response_headers.get("etag", None),
+            last_modified=response_headers.get("last_modified", None),
+            expired_at=now + max_age,
+        )
+    return None
