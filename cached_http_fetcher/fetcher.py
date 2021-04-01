@@ -75,19 +75,28 @@ class OptimizeWorker(multiprocessing.Process):
             source_url = filtered_response.url
 
             parsed_header = put_content(filtered_response, self._content_storage)
-            cached_url = None
             if parsed_header is not None:
                 cached_url = self._content_storage.cached_url(source_url)
 
-            put_meta(
-                    source_url,
-                    self._meta_storage,
-                    cached_url=cached_url,
-                    etag=parsed_header.etag,
-                    last_modified=parsed_header.last_modified,
-                    fetched_at=fetched_response.fetched_at,
-                    expired_at=parsed_header.expired_at,
-            )
+                put_meta(
+                        source_url,
+                        self._meta_storage,
+                        cached_url=cached_url,
+                        etag=parsed_header.etag,
+                        last_modified=parsed_header.last_modified,
+                        fetched_at=fetched_response.fetched_at,
+                        expired_at=parsed_header.expired_at,
+                )
+            else:
+                put_meta(
+                        source_url,
+                        self._meta_storage,
+                        cached_url=None,
+                        etag=None,
+                        last_modified=None,
+                        fetched_at=fetched_response.fetched_at,
+                        expired_at=time.time() + 3600, # TODO: calc non 200, 304 cache expired_at
+                )
 
 
 def url_queue_from_list(url_list: Iterable[str]) -> multiprocessing.Queue:
