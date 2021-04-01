@@ -1,31 +1,13 @@
 import time
 from typing import Optional
+from email.utils import parsedate_tz, mktime_tz
 from requests.structures import CaseInsensitiveDict
 
 from .storage import ContentStorageBase
 from .model import FetchedResponse, ParsedHeader
 
 
-# Ref.) https://tools.ietf.org/html/rfc7234#section-5.2
-CACHE_CONTROL_DIRECTIVES = {
-    "max-age": (int, True),
-    "max-stale": (int, False),
-    "min-fresh": (int, True),
-    "no-cache": (None, False),
-    "no-store": (None, False),
-    "no-transform": (None, False),
-    "only-if-cached": (None, False),
-    "must-revalidate": (None, False),
-    "public": (None, False),
-    "private": (None, False),
-    "proxy-revalidate": (None, False),
-    "s-maxage": (int, True),
-}
-
-
-def parse_cache_control(headers: CaseInsensitiveDict):
-    cache_control = headers.get("cache-control", "")
-
+def parse_cache_control(cache_control: str):
     directives = {}
 
     for part in cache_control.split(","):
@@ -35,26 +17,35 @@ def parse_cache_control(headers: CaseInsensitiveDict):
 
         s = part.split("=", 1)
         key = s[0].strip()
-
-        try:
-            value_type, must_have_value = CACHE_CONTROL_DIRECTIVES[key]
-        except KeyError:
-            continue
-
-        if not value_type or not must_have_value:
+        if len(s) == 2:
+            directives[key] = s[1].strip()
+        else:
             directives[key] = None
-        if value_type:
-            try:
-                directives[key] = value_type(s[1].strip())
-            except IndexError:
-                pass
-            except ValueError:
-                pass
 
     return directives
 
 
+SHORT_CACHE_SECONDS = 3600
+
+
+def calc_expired_at(response_headers: CaseInsensitiveDict, now: int) -> int:
+    try:
+        cache_control = parse_cache_control(response_headers.get("cache-control", ""))
+
+        if "no-store" in cache_control:
+            return now + SHORT_CACHE_SECONDS
+        if "max-age" in cache_control:
+            return now + max(SHORT_CACHE_SECONDS, int(cache_control["max-age"]))
+        if "expires" in response_headers:
+            expires = mktime_tz(parsedate_tz(response_headers["expires"]))
+            return now + max(expires - now, SHORT_CACHE_SECONDS)
+    except:
+        pass
+    return now + SHORT_CACHE_SECONDS
+
+
 def put_content(response: FetchedResponse, content_storage: ContentStorageBase) -> Optional[ParsedHeader]:
+    # TODO: Improve handling 304
     if response.status_code == 200 or response.status_code == 304:
         now = time.time()
 
@@ -62,7 +53,7 @@ def put_content(response: FetchedResponse, content_storage: ContentStorageBase) 
 
         if response.status_code == 200:
             content_type = response_headers.get("content-type", None)
-            # TODO: pass max_age
+            # TODO: calc max_age
             max_age = 3600
             content_storage.put_content(
                     response.url,
@@ -71,9 +62,10 @@ def put_content(response: FetchedResponse, content_storage: ContentStorageBase) 
                     cache_control=f"max_age={max_age}"
             )
 
+        expired_at = calc_expired_at(response_headers, now)
         return ParsedHeader(
             etag=response_headers.get("etag", None),
             last_modified=response_headers.get("last_modified", None),
-            expired_at=now + 3600, # TODO: calc expired_at
+            expired_at=expired_at,
         )
     return None
