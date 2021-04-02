@@ -40,7 +40,7 @@ class FetchWorker(multiprocessing.Process):
 
             for url in url_set:
                 now = time.time()
-                meta = get_meta(url, now, self._meta_storage)
+                meta = get_meta(url, now, self._meta_storage, logger=self._logger)
                 for fetched_response in self._rate_limit_fetcher.fetch(url, meta, now):
                     self._response_queue.put(fetched_response)
 

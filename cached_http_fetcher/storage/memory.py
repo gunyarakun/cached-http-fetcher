@@ -1,10 +1,10 @@
-from typing import Optional
+from typing import Optional, Dict, Any
 
 from .base import ContentStorageBase, MetaStorageBase
 
 
 class MemoryStorage(MetaStorageBase):
-    def __init__(self, **kwargs):
+    def __init__(self, **kwargs) -> None:
         self.dict = {}
 
     def get(self, source_url: str) -> Optional[bytes]:
@@ -18,13 +18,13 @@ class MemoryStorage(MetaStorageBase):
     def delete(self, source_url: str) -> None:
         del self.dict[source_url]
 
-    def dict_for_debug(self) -> dict:
+    def dict_for_debug(self) -> Dict[str, bytes]:
         return self.dict
 
 
 class ContentMemoryStorage(ContentStorageBase):
-    def __init__(self, **kwargs):
-        self.dict = {}
+    def __init__(self, **kwargs) -> None:
+        self.dict: Dict[str, bytes] = {}
 
     def get(self, source_url: str) -> Optional[bytes]:
         v = self.dict.get(source_url, None)
@@ -51,5 +51,5 @@ class ContentMemoryStorage(ContentStorageBase):
     def cached_url(self, source_url: str) -> str:
         return f"memory:{source_url}"
 
-    def dict_for_debug(self) -> dict:
+    def dict_for_debug(self) -> Dict[str, Dict[str, Any]]:
         return self.dict
