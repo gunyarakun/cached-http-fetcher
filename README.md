@@ -65,7 +65,7 @@ class S3ContentStorage(cached_http_fetcher.ContentStorageBase):
     def get(self, source_url: str) -> bytes:
         try:
             obj = self.s3.get_object(Bucket=self.buclet, Key=S3ContentStorage.s3_key(source_url))
-            return obk["Body"]
+            return obj["Body"]
         except ClientError as ex:
             if ex.response["Error"]["Code"] == "NoSuchKey":
                 return None
