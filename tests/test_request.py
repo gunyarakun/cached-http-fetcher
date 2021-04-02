@@ -1,22 +1,73 @@
-from cached_http_fetcher.storage import MemoryStorage
+from cached_http_fetcher.model import Meta
 from cached_http_fetcher.request import requests_get, cached_requests_get
 
 def test_cached_requests_get(requests_mock):
+    now = 1617355068
+    past = now - 3600
+    future = now + 3600
     url = "https://example.com/image1.txt"
     requests_mock.add(
         requests_mock.GET, url, body=b"test"
     )
 
-    meta_storage = MemoryStorage()
-    meta_storage_dict = meta_storage.dict_for_debug()
-
-    # First fetch
-    fetched_response = cached_requests_get(url, meta_storage)
-
+    # fetch without meta
+    fetched_response = cached_requests_get(url, None, now)
     assert fetched_response is not None
-    assert len(meta_storage_dict) == 0
+    assert len(requests_mock.calls) == 1
     assert fetched_response.url == url
-    # TODO: Use freezegun to test
-    # assert fetched_response.fetched_at == url
+    assert fetched_response.fetched_at == now
     assert fetched_response.response.status_code == 200
     assert fetched_response.response.content == b"test"
+    last_call = requests_mock.calls[-1]
+    assert "If-None-Match" not in last_call.request.headers
+    assert "If-Modified-Since" not in last_call.request.headers
+
+    # fetch with non expired meta
+    meta = Meta(
+        cached_url = url,
+        etag = None,
+        last_modified = None,
+        fetched_at = past,
+        expired_at = future,
+    )
+    fetched_response = cached_requests_get(url, meta, now)
+    assert fetched_response is None
+
+    # fetch with expired meta including etag
+    meta = Meta(
+        cached_url = url,
+        etag = "deadbeef",
+        last_modified = None,
+        fetched_at = past,
+        expired_at = past,
+    )
+    fetched_response = cached_requests_get(url, meta, now)
+    assert fetched_response is not None
+    assert len(requests_mock.calls) == 2
+    assert fetched_response.url == url
+    assert fetched_response.fetched_at == now
+    assert fetched_response.response.status_code == 200
+    assert fetched_response.response.content == b"test"
+    last_call = requests_mock.calls[-1]
+    assert last_call.request.headers["If-None-Match"] == meta.etag
+    assert "If-Modified-Since" not in last_call.request.headers
+
+    # fetch with expired meta including last_modified
+    meta = Meta(
+        cached_url = url,
+        etag = None,
+        last_modified = "Wed, 21 Oct 2015 07:28:00 GMT",
+        fetched_at = past,
+        expired_at = past,
+    )
+    fetched_response = cached_requests_get(url, meta, now)
+    assert fetched_response is not None
+    assert len(requests_mock.calls) == 3
+    assert fetched_response.url == url
+    assert fetched_response.fetched_at == now
+    assert fetched_response.response.status_code == 200
+    assert fetched_response.response.content == b"test"
+    last_call = requests_mock.calls[-1]
+    assert "If-None-Match" not in last_call.request.headers
+    assert last_call.request.headers["If-Modified-Since"] == meta.last_modified
+

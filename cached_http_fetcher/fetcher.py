@@ -34,13 +34,15 @@ class FetchWorker(multiprocessing.Process):
 
             for url in url_set:
                 try:
-                    elapsed = time.time() - fetch_count_start
+                    now = time.time()
+                    elapsed = now - fetch_count_start
                     remaining = self._fetch_count_window - elapsed
                     if remaining <= 0:
                         fetch_count_start = time.time()
                         fetch_count = 0
 
-                    fetched_response = cached_requests_get(url, self._meta_storage)
+                    meta = get_meta(url, self._meta_storage)
+                    fetched_response = cached_requests_get(url, meta, now)
 
                     # fetched_response can be None when we don't need to fetch the cache
                     if fetched_response is not None:

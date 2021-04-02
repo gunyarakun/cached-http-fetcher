@@ -4,9 +4,7 @@ import requests
 from requests import RequestException
 from backoff import on_exception, expo
 
-from .storage import StorageBase
-from .model import FetchedResponse
-from .meta import get_meta
+from .model import FetchedResponse, Meta
 
 # Ignore some warnings
 import warnings
@@ -29,10 +27,7 @@ def requests_get(url: str, headers: dict):
     return response
 
 
-def cached_requests_get(url: str, meta_storage: StorageBase) -> Optional[FetchedResponse]:
-    meta = get_meta(url, meta_storage)
-    now = time.time()
-
+def cached_requests_get(url: str, meta: Optional[Meta], now: int) -> Optional[FetchedResponse]:
     req_headers = {}
 
     if meta is not None:
