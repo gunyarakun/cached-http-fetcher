@@ -3,11 +3,51 @@ import time
 import multiprocessing
 from typing import Dict, Set, Iterable, Optional
 
+from .model import Meta
 from .meta import get_meta, put_meta
 from .url_list import urls_per_domain
 from .storage import StorageBase, ContentStorageBase
 from .request import cached_requests_get, RequestException
 from .content import put_content
+
+class RateLimitFetcher:
+    def __init__(self, *, max_fetch_count: int, fetch_count_window: int, logger):
+        self._max_fetch_count = max_fetch_count
+        self._fetch_count_window = fetch_count_window
+        if self._max_fetch_count == 0 or self._fetch_count_window == 0:
+            self._max_fetch_count = sys.maxsize
+            self._fetch_count_window = sys.maxsize
+        self._logger = logger
+
+        self.fetch_count_start = time.time()
+        self.fetch_count = 0
+
+
+    def fetch(self, url: str, meta: Meta):
+        try:
+            now = time.time()
+            elapsed = now - self.fetch_count_start
+            remaining = self._fetch_count_window - elapsed
+            if remaining <= 0:
+                self.fetch_count_start = time.time()
+                self.fetch_count = 0
+
+            fetched_response = cached_requests_get(url, meta, now)
+
+            # fetched_response can be None when we don't need to fetch the cache
+            if fetched_response is not None:
+                yield fetched_response
+
+                self.fetch_count += 1
+                if self.fetch_count > self._max_fetch_count:
+                    time.sleep(remaining)
+        except RequestException as e:
+            self._logger.warning(str(e))
+        except Exception as e:
+            self._logger.warning(str(e))
+
+
+
 
 class FetchWorker(multiprocessing.Process):
     def __init__(self, url_queue, response_queue, meta_storage, max_fetch_count, fetch_count_window):
@@ -16,45 +56,19 @@ class FetchWorker(multiprocessing.Process):
         self._response_queue = response_queue
         self._meta_storage = meta_storage
         self._logger = multiprocessing.get_logger()
-        self._max_fetch_count = max_fetch_count
-        self._fetch_count_window = fetch_count_window
-        if self._max_fetch_count == 0 or self._fetch_count_window == 0:
-            self._max_fetch_count = sys.maxsize
-            self._fetch_count_window = sys.maxsize
+        self._rate_limit_fetcher = RateLimitFetcher(max_fetch_count=max_fetch_count, fetch_count_window=fetch_count_window, logger=self._logger)
 
 
     def run(self):
-        fetch_count_start = time.time()
-        fetch_count = 0
-
         while True:
             url_set = self._url_queue.get()
             if url_set is None:
                 break
 
             for url in url_set:
-                try:
-                    now = time.time()
-                    elapsed = now - fetch_count_start
-                    remaining = self._fetch_count_window - elapsed
-                    if remaining <= 0:
-                        fetch_count_start = time.time()
-                        fetch_count = 0
-
-                    meta = get_meta(url, self._meta_storage)
-                    fetched_response = cached_requests_get(url, meta, now)
-
-                    # fetched_response can be None when we don't need to fetch the cache
-                    if fetched_response is not None:
-                        self._response_queue.put(fetched_response)
-
-                        fetch_count += 1
-                        if fetch_count > self._max_fetch_count:
-                            time.sleep(remaining)
-                except RequestException as e:
-                    self._logger.warning(str(e))
-                except Exception as e:
-                    self._logger.warning(str(e))
+                meta = get_meta(url, self._meta_storage)
+                for fetched_response in self._rate_limit_fetcher.fetch(url, meta):
+                    self._response_queue.put(fetched_response)
 
 
 class OptimizeWorker(multiprocessing.Process):
