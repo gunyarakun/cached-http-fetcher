@@ -121,9 +121,9 @@ def fetch_urls_single(
 
 def fetch_urls(
     url_list: Iterable[str],
-    *,
     meta_storage: MetaStorageBase,
     content_storage: ContentStorageBase,
+    *,
     max_fetch_count: int = 0,
     fetch_count_window: int = 0,
     num_fetcher: Optional[int] = None,
@@ -183,9 +183,9 @@ def fetch_urls(
 
 def get_cached_url(
     url: str,
+    meta_storage: MetaStorageBase,
     *,
     now: int = int(time.time()),
-    meta_storage: MetaStorageBase,
     logger: Logger,
 ) -> Optional[str]:
     """
