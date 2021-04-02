@@ -9,6 +9,9 @@ from .rate_limit_fetcher import RateLimitFetcher
 from .storage import StorageBase, ContentStorageBase
 
 
+SHORT_CACHE_SECONDS = 3600
+
+
 class FetchWorker(multiprocessing.Process):
     def __init__(self, url_queue, response_queue, meta_storage, max_fetch_count, fetch_count_window):
         super().__init__()
@@ -51,7 +54,7 @@ class OptimizeWorker(multiprocessing.Process):
             filtered_response = fetched_response.response
             source_url = filtered_response.url
 
-            parsed_header = put_content(source_url, filtered_response, self._content_storage)
+            parsed_header = put_content(source_url, filtered_response, SHORT_CACHE_SECONDS, self._content_storage)
             if parsed_header is not None:
                 cached_url = self._content_storage.cached_url(source_url)
 

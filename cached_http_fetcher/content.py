@@ -26,26 +26,23 @@ def parse_cache_control(cache_control: str):
     return directives
 
 
-SHORT_CACHE_SECONDS = 3600
-
-
-def calc_expired_at(response_headers: CaseInsensitiveDict, now: int) -> int:
+def calc_expired_at(response_headers: CaseInsensitiveDict, now: int, min_cache_age: int) -> int:
     try:
         cache_control = parse_cache_control(response_headers.get("cache-control", ""))
 
         if "no-store" in cache_control:
-            return now + SHORT_CACHE_SECONDS
+            return now + min_cache_age
         if "max-age" in cache_control:
-            return now + max(SHORT_CACHE_SECONDS, int(cache_control["max-age"]))
+            return now + max(min_cache_age, int(cache_control["max-age"]))
         if "expires" in response_headers:
             expires = mktime_tz(parsedate_tz(response_headers["expires"]))
-            return now + max(expires - now, SHORT_CACHE_SECONDS)
+            return now + max(expires - now, min_cache_age)
     except:
         pass
-    return now + SHORT_CACHE_SECONDS
+    return now + min_cache_age
 
 
-def put_content(source_url: str, response: Response, content_storage: ContentStorageBase) -> Optional[ParsedHeader]:
+def put_content(source_url: str, response: Response, min_cache_age: int, content_storage: ContentStorageBase) -> Optional[ParsedHeader]:
     # TODO: Improve handling 304
     if response.status_code == 200 or response.status_code == 304:
         now = time.time()
@@ -63,7 +60,7 @@ def put_content(source_url: str, response: Response, content_storage: ContentSto
                     cache_control=f"max_age={max_age}"
             )
 
-        expired_at = calc_expired_at(response_headers, now)
+        expired_at = calc_expired_at(response_headers, now, min_cache_age)
         return ParsedHeader(
             etag=response_headers.get("etag", None),
             last_modified=response_headers.get("last_modified", None),
