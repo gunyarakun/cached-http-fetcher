@@ -4,7 +4,7 @@ This library fetches data via HTTP(S), stores into some storages which is access
 
 ## Install
 
-```
+```shell
 pip install cached-http-fetcher
 ```
 
@@ -16,7 +16,7 @@ You have to implement your own meta storage extends `MetaStorageBase` with Redis
 
 The whole sample code is following.
 
-```
+```python
 import boto3
 from redis import Redis
 import cached_http_fetcher
@@ -99,7 +99,7 @@ for url in url_list:
 
 ## Develop
 
-```
+```shell
 make test # test
 make dist # release to PyPI
 ```
