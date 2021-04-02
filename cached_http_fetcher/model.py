@@ -16,10 +16,3 @@ class FetchedResponse:
     url: str
     fetched_at: int
     response: requests.Request
-
-
-@dataclass(frozen=True)
-class ParsedHeader:
-    etag: Optional[str]
-    last_modified: Optional[str]
-    expired_at: Optional[int]

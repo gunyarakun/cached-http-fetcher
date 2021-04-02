@@ -6,20 +6,8 @@ from .model import Meta
 from .storage import StorageBase
 
 
-def url_normalize(url: str) -> str:
-    # FIXME: implement
-    return url
-
-
-def put_meta(url: str, meta_storage: StorageBase, *, cached_url: str, etag: Optional[str], last_modified: Optional[str], fetched_at: int, expired_at: Optional[int]):
-    meta = Meta(
-        cached_url=cached_url,
-        etag=etag,
-        last_modified=last_modified,
-        fetched_at=fetched_at,
-        expired_at=expired_at,
-    )
-    meta_storage.put(url, pickle.dumps(meta))
+def put_meta(source_url: str, meta: Meta, meta_storage: StorageBase) -> None:
+    meta_storage.put(source_url, pickle.dumps(meta))
 
 
 def get_meta(url: str, meta_storage: StorageBase) -> Meta:
@@ -27,7 +15,8 @@ def get_meta(url: str, meta_storage: StorageBase) -> Meta:
     get a valid Meta instance from url
     """
 
-    norm_url = url_normalize(url)
+    # TODO: Implement url normalizer
+    norm_url = url
 
     now = time.time()
 

@@ -3,7 +3,7 @@ from requests import Response
 from email.utils import parsedate_tz, mktime_tz
 from requests.structures import CaseInsensitiveDict
 
-from .model import ParsedHeader
+from .model import Meta
 from .storage import ContentStorageBase
 
 
@@ -41,7 +41,10 @@ def calc_expired_at(response_headers: CaseInsensitiveDict, now: int, min_cache_a
     return now + min_cache_age
 
 
-def put_content(source_url: str, response: Response, min_cache_age: int, content_max_age: int, now: int, content_storage: ContentStorageBase) -> Optional[ParsedHeader]:
+def put_content(response: Response, fetched_at: int, min_cache_age: int, content_max_age: int, content_storage: ContentStorageBase) -> Meta:
+    source_url = response.url
+    cached_url = content_storage.cached_url(source_url)
+
     # TODO: Improve handling 304
     if response.status_code == 200 or response.status_code == 304:
         response_headers = CaseInsensitiveDict(response.headers)
@@ -55,10 +58,20 @@ def put_content(source_url: str, response: Response, min_cache_age: int, content
                     cache_control=f"max-age={content_max_age}"
             )
 
-        expired_at = calc_expired_at(response_headers, now, min_cache_age)
-        return ParsedHeader(
+        expired_at = calc_expired_at(response_headers, fetched_at, min_cache_age)
+
+        return Meta(
+            cached_url=cached_url,
             etag=response_headers.get("etag", None),
             last_modified=response_headers.get("last-modified", None),
+            fetched_at=fetched_at,
             expired_at=expired_at,
         )
-    return None
+    # meta for non cacheable content
+    return Meta(
+        cached_url=cached_url,
+        etag=None,
+        last_modified=None,
+        fetched_at=fetched_at,
+        expired_at=now + min_cache_age
+    )

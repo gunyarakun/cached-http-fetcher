@@ -64,37 +64,44 @@ def test_put_content():
 
     # No content type
     response = Response()
+    response.url = url
     response.status_code = 200
     response._content_consumed = True
     response._content = content
-    parsed_header = put_content(url, response, min_cache_age, content_max_age, now, content_storage)
+    meta = put_content(response, now, min_cache_age, content_max_age, content_storage)
     assert len(content_storage_dict) == 1
     assert content_storage_dict[url]["value"] == content
     assert content_storage_dict[url]["content_type"] is None
     assert content_storage_dict[url]["cache_control"] == f"max-age={content_max_age}"
-    assert parsed_header.etag == None
-    assert parsed_header.last_modified == None
-    assert parsed_header.expired_at is not None # tested in test_calc_expired_at()
+    assert meta.cached_url == content_storage.cached_url(url)
+    assert meta.etag == None
+    assert meta.last_modified == None
+    assert meta.fetched_at == now
+    assert meta.expired_at is not None # tested in test_calc_expired_at()
+
 
     # With content type
     response = Response()
+    response.url = url
     response.status_code = 200
     response.headers["Content-Type"] = "image/jpeg"
-    parsed_header = put_content(url, response, min_cache_age, content_max_age, now, content_storage)
+    meta = put_content(response, now, min_cache_age, content_max_age, content_storage)
     assert content_storage_dict[url]["content_type"] == "image/jpeg"
 
     # With etag
     etag = "test etag"
     response = Response()
+    response.url = url
     response.status_code = 200
     response.headers["ETag"] = etag
-    parsed_header = put_content(url, response, min_cache_age, content_max_age, now, content_storage)
-    assert parsed_header.etag == etag
+    meta = put_content(response, now, min_cache_age, content_max_age, content_storage)
+    assert meta.etag == etag
 
     # With last-modified
     last_modified = "Wed, 21 Oct 2015 07:28:00 GMT"
     response = Response()
+    response.url = url
     response.status_code = 200
     response.headers["Last-Modified"] = last_modified
-    parsed_header = put_content(url, response, min_cache_age, content_max_age, now, content_storage)
-    assert parsed_header.last_modified == last_modified
+    meta = put_content(response, now, min_cache_age, content_max_age, content_storage)
+    assert meta.last_modified == last_modified
