@@ -59,16 +59,42 @@ def test_put_content():
     url = "http://example.com/image1.jpg"
     content = b"test content"
 
-    # No content type
     content_storage = ContentMemoryStorage()
     content_storage_dict = content_storage.dict_for_debug()
+
+    # No content type
     response = Response()
     response.status_code = 200
     response._content_consumed = True
     response._content = content
-    put_content(url, response, min_cache_age, content_max_age, now, content_storage)
-
+    parsed_header = put_content(url, response, min_cache_age, content_max_age, now, content_storage)
     assert len(content_storage_dict) == 1
     assert content_storage_dict[url]["value"] == content
     assert content_storage_dict[url]["content_type"] is None
     assert content_storage_dict[url]["cache_control"] == f"max-age={content_max_age}"
+    assert parsed_header.etag == None
+    assert parsed_header.last_modified == None
+    assert parsed_header.expired_at is not None # tested in test_calc_expired_at()
+
+    # With content type
+    response = Response()
+    response.status_code = 200
+    response.headers["Content-Type"] = "image/jpeg"
+    parsed_header = put_content(url, response, min_cache_age, content_max_age, now, content_storage)
+    assert content_storage_dict[url]["content_type"] == "image/jpeg"
+
+    # With etag
+    etag = "test etag"
+    response = Response()
+    response.status_code = 200
+    response.headers["ETag"] = etag
+    parsed_header = put_content(url, response, min_cache_age, content_max_age, now, content_storage)
+    assert parsed_header.etag == etag
+
+    # With last-modified
+    last_modified = "Wed, 21 Oct 2015 07:28:00 GMT"
+    response = Response()
+    response.status_code = 200
+    response.headers["Last-Modified"] = last_modified
+    parsed_header = put_content(url, response, min_cache_age, content_max_age, now, content_storage)
+    assert parsed_header.last_modified == last_modified

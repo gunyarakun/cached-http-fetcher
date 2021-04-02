@@ -58,7 +58,7 @@ def put_content(source_url: str, response: Response, min_cache_age: int, content
         expired_at = calc_expired_at(response_headers, now, min_cache_age)
         return ParsedHeader(
             etag=response_headers.get("etag", None),
-            last_modified=response_headers.get("last_modified", None),
+            last_modified=response_headers.get("last-modified", None),
             expired_at=expired_at,
         )
     return None
