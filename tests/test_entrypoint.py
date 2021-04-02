@@ -1,7 +1,7 @@
 import pytest
 
-from cached_http_fetcher.fetcher import fetch_urls, fetch_urls_single, get_cached_url
 from cached_http_fetcher.storage import MemoryStorage, ContentMemoryStorage
+from cached_http_fetcher.entrypoint import fetch_urls, fetch_urls_single, get_cached_url, RateLimitFetcher
 
 
 def test_fetch_urls_single_memory(images, logger, requests_mock):
