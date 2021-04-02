@@ -73,13 +73,20 @@ class OptimizeWorker(multiprocessing.Process):
             put_meta(filtered_response.url, meta, self._meta_storage)
 
 
-def url_queue_from_list(url_list: Iterable[str]) -> multiprocessing.Queue:
+def url_queue_from_iterable(
+    url_list: Iterable[str], logger: Logger
+) -> multiprocessing.Queue:
     url_dict = urls_per_domain(url_list)
     url_queue = multiprocessing.Queue()
+    domain_count = 0
     url_count = 0
     for _domain, url_set in url_dict.items():
         url_queue.put(url_set)
+        domain_count += 1
         url_count += len(url_set)
+
+    logger.info(f"fetch {url_count} urls from {domain_count} domains")
+
     return url_queue
 
 
@@ -95,7 +102,7 @@ def fetch_urls_single(
     """
     A single process version of fetch_urls()
     """
-    url_queue = url_queue_from_list(url_list)
+    url_queue = url_queue_from_iterable(url_list, logger)
     response_queue = multiprocessing.Queue()
 
     url_queue.put(None)
@@ -109,6 +116,7 @@ def fetch_urls_single(
     ow = OptimizeWorker(response_queue, meta_storage, content_storage)
     ow.run()
     ow.close()
+    logger.info(f"fetched")
 
 
 def fetch_urls(
@@ -136,9 +144,7 @@ def fetch_urls(
     """
     fetch_jobs = []
     optimize_jobs = []
-    url_queue = url_queue_from_list(url_list)
-
-    logger.info(f"fetch {len(url_list)} urls from {len(url_queue)} domains")
+    url_queue = url_queue_from_iterable(url_list, logger)
 
     response_queue = multiprocessing.Queue()
 
@@ -172,7 +178,7 @@ def fetch_urls(
     for j in optimize_jobs:
         j.join()
 
-    logger.info(f"fetched {len(url_list)} urls from {len(url_queue)} domains")
+    logger.info(f"fetched")
 
 
 def get_cached_url(

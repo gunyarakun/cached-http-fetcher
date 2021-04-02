@@ -1,5 +1,4 @@
 import hashlib
-import io
 import os
 import sys
 from logging import DEBUG, StreamHandler, getLogger
@@ -7,7 +6,6 @@ from typing import Iterable
 
 import pytest
 import responses as responses_
-from PIL import Image
 
 sys.path.append(
     os.path.abspath(os.path.dirname(os.path.abspath(__file__)) + "/../src/")

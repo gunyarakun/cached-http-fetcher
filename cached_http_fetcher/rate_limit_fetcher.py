@@ -1,7 +1,7 @@
 import sys
 import time
-
 from logging import Logger
+
 from requests import RequestException
 
 from .model import Meta

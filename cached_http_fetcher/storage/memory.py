@@ -12,7 +12,7 @@ class MemoryStorage(MetaStorageBase):
         return self.dict.get(source_url, None)
 
     def put(self, source_url: str, value: bytes) -> None:
-        if type(value) != bytes:
+        if not isinstance(value, bytes):
             raise ValueError
         self.dict[source_url] = value
 

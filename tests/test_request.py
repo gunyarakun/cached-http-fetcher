@@ -70,4 +70,5 @@ def test_cached_requests_get(requests_mock):
     assert "If-None-Match" not in last_call.request.headers
     assert last_call.request.headers["If-Modified-Since"] == meta.last_modified
 
+
 # TODO: test_requests_get()
