@@ -1,10 +1,12 @@
-import requests
-from typing import Optional
 from dataclasses import dataclass
+from typing import Optional
+
+import requests
+
 
 @dataclass(frozen=True)
 class Meta:
-    cached_url: Optional[str] # None for non 200 responses
+    cached_url: Optional[str]  # None for non 200 responses
     etag: Optional[str]
     last_modified: Optional[str]
     fetched_at: int

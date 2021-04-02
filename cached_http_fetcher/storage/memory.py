@@ -1,5 +1,7 @@
 from typing import Optional
-from .base import MetaStorageBase, ContentStorageBase
+
+from .base import ContentStorageBase, MetaStorageBase
+
 
 class MemoryStorage(MetaStorageBase):
     def __init__(self, **kwargs):
@@ -19,6 +21,7 @@ class MemoryStorage(MetaStorageBase):
     def dict_for_debug(self) -> dict:
         return self.dict
 
+
 class ContentMemoryStorage(ContentStorageBase):
     def __init__(self, **kwargs):
         self.dict = {}
@@ -32,7 +35,13 @@ class ContentMemoryStorage(ContentStorageBase):
     def delete(self, source_url: str) -> None:
         del self.dict[source_url]
 
-    def put_content(self, source_url: str, value: bytes, cache_control: str, content_type: Optional[str] = None) -> None:
+    def put_content(
+        self,
+        source_url: str,
+        value: bytes,
+        cache_control: str,
+        content_type: Optional[str] = None,
+    ) -> None:
         self.dict[source_url] = {
             "value": value,
             "cache_control": cache_control,

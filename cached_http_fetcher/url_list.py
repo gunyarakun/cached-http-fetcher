@@ -1,5 +1,6 @@
-from typing import Dict, Set, Iterable
+from typing import Dict, Iterable, Set
 from urllib.parse import urlparse
+
 
 def urls_per_domain(url_list: Iterable[str]) -> Dict[str, Set[str]]:
     results = {}

@@ -9,15 +9,14 @@ setuptools.setup(
     install_requires=[
         "requests>=2.25.1",
     ],
-    extras_require={
-    },
+    extras_require={},
     setup_requires=["pytest-runner>=5.3.0"],
     tests_require=[
         "pytest>=6.2.2",
         "pytest-cov>=2.11.1",
         "pytest-mock>=3.5.1",
         "responses>=0.13.1",
-        "Pillow>=8.1.0", # For dummy image generation
+        "pysen>=0.9.1",
     ],
     author="Tasuku SUENAGA a.k.a. gunyarakun",
     author_email="tasuku-s-github@titech.ac",
@@ -31,5 +30,5 @@ setuptools.setup(
         "License :: OSI Approved :: MIT License",
         "Operating System :: OS Independent",
     ],
-    python_requires='>=3.7',
+    python_requires=">=3.7",
 )

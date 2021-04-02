@@ -1,9 +1,13 @@
-from requests import Response
 from email.utils import formatdate
-from requests.structures import CaseInsensitiveDict
 
+from cached_http_fetcher.content import (
+    calc_expired_at,
+    parse_cache_control,
+    put_content,
+)
 from cached_http_fetcher.storage import ContentMemoryStorage
-from cached_http_fetcher.content import put_content, parse_cache_control, calc_expired_at
+from requests import Response
+from requests.structures import CaseInsensitiveDict
 
 
 def test_parse_cache_control():
@@ -29,26 +33,36 @@ def test_calc_expired_at():
     min_cache_age = 47387
 
     # Cache-Control: no-store
-    expired_at = calc_expired_at(CaseInsensitiveDict({"cache-control": "no-store"}), now, min_cache_age)
+    expired_at = calc_expired_at(
+        CaseInsensitiveDict({"cache-control": "no-store"}), now, min_cache_age
+    )
     assert expired_at == now + min_cache_age
 
     # Cache-Control: max-age=xxxxx, larger than min_cache_age
     max_age = min_cache_age + 4346
-    expired_at = calc_expired_at(CaseInsensitiveDict({"cache-control": f"max-age={max_age}"}), now, min_cache_age)
+    expired_at = calc_expired_at(
+        CaseInsensitiveDict({"cache-control": f"max-age={max_age}"}), now, min_cache_age
+    )
     assert expired_at == now + max_age
 
     # Cache-Control: max-age=xxxxx, smaller than min_cache_age
     max_age = min_cache_age - 4346
-    expired_at = calc_expired_at(CaseInsensitiveDict({"cache-control": f"max-age={max_age}"}), now, min_cache_age)
+    expired_at = calc_expired_at(
+        CaseInsensitiveDict({"cache-control": f"max-age={max_age}"}), now, min_cache_age
+    )
     assert expired_at == now + min_cache_age
 
     # Expires: <now on RFC 2822>
-    expired_at = calc_expired_at(CaseInsensitiveDict({"expires": formatdate(now)}), now, min_cache_age)
+    expired_at = calc_expired_at(
+        CaseInsensitiveDict({"expires": formatdate(now)}), now, min_cache_age
+    )
     assert expired_at == now + min_cache_age
 
     # Expires: <now on RFC 2822>
     expires = now + min_cache_age + 434553
-    expired_at = calc_expired_at(CaseInsensitiveDict({"expires": formatdate(expires)}), now, min_cache_age)
+    expired_at = calc_expired_at(
+        CaseInsensitiveDict({"expires": formatdate(expires)}), now, min_cache_age
+    )
     assert expired_at == expires
 
 
@@ -77,8 +91,7 @@ def test_put_content():
     assert meta.etag == None
     assert meta.last_modified == None
     assert meta.fetched_at == now
-    assert meta.expired_at is not None # tested in test_calc_expired_at()
-
+    assert meta.expired_at is not None  # tested in test_calc_expired_at()
 
     # With content type
     response = Response()
@@ -113,7 +126,7 @@ def test_put_content():
     response.url = url
     response.status_code = 304
     meta = put_content(response, now, min_cache_age, content_max_age, content_storage)
-    assert len(content_storage_dict) == 0 # Not saved
+    assert len(content_storage_dict) == 0  # Not saved
     assert meta.cached_url == content_storage.cached_url(url)
 
     # 500
@@ -123,5 +136,5 @@ def test_put_content():
     response.url = url
     response.status_code = 500
     meta = put_content(response, now, min_cache_age, content_max_age, content_storage)
-    assert len(content_storage_dict) == 0 # Not saved
+    assert len(content_storage_dict) == 0  # Not saved
     assert meta.cached_url is None

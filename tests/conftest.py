@@ -1,17 +1,19 @@
-from typing import Iterable
-
+import hashlib
 import io
 import os
 import sys
+from logging import DEBUG, StreamHandler, getLogger
+from typing import Iterable
+
 import pytest
-import hashlib
-from PIL import Image
 import responses as responses_
-from logging import getLogger, StreamHandler, DEBUG
+from PIL import Image
 
-sys.path.append(os.path.abspath(os.path.dirname(os.path.abspath(__file__)) + "/../src/"))
+sys.path.append(
+    os.path.abspath(os.path.dirname(os.path.abspath(__file__)) + "/../src/")
+)
 
-from cached_http_fetcher.storage import MetaStorageBase, ContentStorageBase
+from cached_http_fetcher.storage import ContentStorageBase, MetaStorageBase
 
 IMAGES = {
     "http://domain1.example.com/image.jpg": {
@@ -64,7 +66,7 @@ IMAGES = {
 # create images
 for url, obj in IMAGES.items():
     # generate color from url
-    color = int(hashlib.sha256(url.encode('utf-8')).hexdigest(), 16) % 0xffffff
+    color = int(hashlib.sha256(url.encode("utf-8")).hexdigest(), 16) % 0xFFFFFF
 
     img = Image.new("RGB", (obj["width"], obj["height"]), color=color)
     with io.BytesIO() as output:

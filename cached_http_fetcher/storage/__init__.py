@@ -1,2 +1,2 @@
-from .base import MetaStorageBase, ContentStorageBase
-from .memory import MemoryStorage, ContentMemoryStorage
+from .base import ContentStorageBase, MetaStorageBase
+from .memory import ContentMemoryStorage, MemoryStorage

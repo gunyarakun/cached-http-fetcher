@@ -1,5 +1,6 @@
-from typing import Optional
 from abc import ABC, abstractmethod
+from typing import Optional
+
 
 class MetaStorageBase(ABC):
     @abstractmethod
@@ -25,7 +26,13 @@ class ContentStorageBase(ABC):
         pass
 
     @abstractmethod
-    def put_content(self, source_url: str, value: bytes, cache_control: str, content_type: Optional[str] = None) -> None:
+    def put_content(
+        self,
+        source_url: str,
+        value: bytes,
+        cache_control: str,
+        content_type: Optional[str] = None,
+    ) -> None:
         pass
 
     @abstractmethod

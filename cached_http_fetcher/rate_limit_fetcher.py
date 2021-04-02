@@ -1,9 +1,9 @@
 import sys
 import time
 
-from .model import Meta
-from .request import cached_requests_get, RequestException
 from .content import put_content
+from .model import Meta
+from .request import RequestException, cached_requests_get
 
 
 class RateLimitFetcher:
@@ -17,7 +17,6 @@ class RateLimitFetcher:
 
         self.fetch_count_start = time.time()
         self.fetch_count = 0
-
 
     def fetch(self, url: str, meta: Meta, now: int):
         try:
