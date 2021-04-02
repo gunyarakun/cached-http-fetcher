@@ -1,5 +1,3 @@
-import pytest
-
 from cached_http_fetcher.storage import MemoryStorage, ContentMemoryStorage
 from cached_http_fetcher.entrypoint import fetch_urls, fetch_urls_single, get_cached_url, RateLimitFetcher
 

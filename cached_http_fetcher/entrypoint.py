@@ -26,8 +26,9 @@ class FetchWorker(multiprocessing.Process):
                 break
 
             for url in url_set:
+                now = time.time()
                 meta = get_meta(url, self._meta_storage)
-                for fetched_response in self._rate_limit_fetcher.fetch(url, meta):
+                for fetched_response in self._rate_limit_fetcher.fetch(url, meta, now):
                     self._response_queue.put(fetched_response)
 
 

@@ -19,9 +19,8 @@ class RateLimitFetcher:
         self.fetch_count = 0
 
 
-    def fetch(self, url: str, meta: Meta):
+    def fetch(self, url: str, meta: Meta, now: int):
         try:
-            now = time.time()
             elapsed = now - self.fetch_count_start
             remaining = self._fetch_count_window - elapsed
             if remaining <= 0:
