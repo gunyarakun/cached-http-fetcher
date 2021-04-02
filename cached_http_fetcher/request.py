@@ -29,7 +29,7 @@ def requests_get(url: str, headers: dict):
     return response
 
 
-def cached_requests_get(url: str, meta_storage: StorageBase) -> Optional[requests.Request]:
+def cached_requests_get(url: str, meta_storage: StorageBase) -> Optional[FetchedResponse]:
     meta = get_meta(url, meta_storage)
     now = time.time()
 

@@ -74,7 +74,7 @@ class OptimizeWorker(multiprocessing.Process):
             filtered_response = fetched_response.response
             source_url = filtered_response.url
 
-            parsed_header = put_content(filtered_response, self._content_storage)
+            parsed_header = put_content(source_url, filtered_response, self._content_storage)
             if parsed_header is not None:
                 cached_url = self._content_storage.cached_url(source_url)
 
