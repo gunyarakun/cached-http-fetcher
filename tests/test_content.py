@@ -1,6 +1,10 @@
+from requests import Response
 from email.utils import formatdate
 from requests.structures import CaseInsensitiveDict
+
+from cached_http_fetcher.storage import ContentMemoryStorage
 from cached_http_fetcher.content import put_content, parse_cache_control, calc_expired_at
+
 
 def test_parse_cache_control():
     directives = parse_cache_control("no-cache")
@@ -46,3 +50,25 @@ def test_calc_expired_at():
     expires = now + min_cache_age + 434553
     expired_at = calc_expired_at(CaseInsensitiveDict({"expires": formatdate(expires)}), now, min_cache_age)
     assert expired_at == expires
+
+
+def test_put_content():
+    now = 1617355068
+    min_cache_age = 47387
+    content_max_age = 5487
+    url = "http://example.com/image1.jpg"
+    content = b"test content"
+
+    # No content type
+    content_storage = ContentMemoryStorage()
+    content_storage_dict = content_storage.dict_for_debug()
+    response = Response()
+    response.status_code = 200
+    response._content_consumed = True
+    response._content = content
+    put_content(url, response, min_cache_age, content_max_age, now, content_storage)
+
+    assert len(content_storage_dict) == 1
+    assert content_storage_dict[url]["value"] == content
+    assert content_storage_dict[url]["content_type"] is None
+    assert content_storage_dict[url]["cache_control"] == f"max-age={content_max_age}"

@@ -10,6 +10,7 @@ from .storage import StorageBase, ContentStorageBase
 
 
 SHORT_CACHE_SECONDS = 3600
+CONTENT_MAX_AGE = 3600
 
 
 class FetchWorker(multiprocessing.Process):
@@ -54,7 +55,8 @@ class OptimizeWorker(multiprocessing.Process):
             filtered_response = fetched_response.response
             source_url = filtered_response.url
 
-            parsed_header = put_content(source_url, filtered_response, SHORT_CACHE_SECONDS, self._content_storage)
+            now = time.time()
+            parsed_header = put_content(source_url, filtered_response, SHORT_CACHE_SECONDS, CONTENT_MAX_AGE, now, self._content_storage)
             if parsed_header is not None:
                 cached_url = self._content_storage.cached_url(source_url)
 

@@ -1,11 +1,10 @@
-import time
 from typing import Optional
 from requests import Response
 from email.utils import parsedate_tz, mktime_tz
 from requests.structures import CaseInsensitiveDict
 
+from .model import ParsedHeader
 from .storage import ContentStorageBase
-from .model import FetchedResponse, ParsedHeader
 
 
 def parse_cache_control(cache_control: str):
@@ -42,22 +41,18 @@ def calc_expired_at(response_headers: CaseInsensitiveDict, now: int, min_cache_a
     return now + min_cache_age
 
 
-def put_content(source_url: str, response: Response, min_cache_age: int, content_storage: ContentStorageBase) -> Optional[ParsedHeader]:
+def put_content(source_url: str, response: Response, min_cache_age: int, content_max_age: int, now: int, content_storage: ContentStorageBase) -> Optional[ParsedHeader]:
     # TODO: Improve handling 304
     if response.status_code == 200 or response.status_code == 304:
-        now = time.time()
-
         response_headers = CaseInsensitiveDict(response.headers)
 
         if response.status_code == 200:
             content_type = response_headers.get("content-type", None)
-            # TODO: calc max_age
-            max_age = 3600
             content_storage.put_content(
                     source_url,
                     response.content,
                     content_type=content_type,
-                    cache_control=f"max_age={max_age}"
+                    cache_control=f"max-age={content_max_age}"
             )
 
         expired_at = calc_expired_at(response_headers, now, min_cache_age)
