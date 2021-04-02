@@ -1,13 +1,17 @@
 import sys
 import time
 
+from logging import Logger
+
 from .content import put_content
 from .model import Meta
 from .request import RequestException, cached_requests_get
 
 
 class RateLimitFetcher:
-    def __init__(self, *, max_fetch_count: int, fetch_count_window: int, logger):
+    def __init__(
+        self, *, max_fetch_count: int, fetch_count_window: int, logger: Logger
+    ):
         self._max_fetch_count = max_fetch_count
         self._fetch_count_window = fetch_count_window
         if self._max_fetch_count == 0 or self._fetch_count_window == 0:

@@ -25,7 +25,7 @@ def get_meta(
     if meta_pickled is None:
         return None
     try:
-        meta = pickle.loads(meta_pickled)
+        meta: Meta = pickle.loads(meta_pickled)
         if now > 0 and meta.expired_at < now:
             logger.info(
                 f"Invalidate meta data (expired_at={meta.expired_at}): {norm_url}"

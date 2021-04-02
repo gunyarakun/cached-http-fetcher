@@ -2,11 +2,11 @@ import time
 
 # Ignore some warnings
 import warnings
-from typing import Optional
+from typing import Dict, Optional
 
 import requests
 from backoff import expo, on_exception
-from requests import RequestException
+from requests import RequestException, Response
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
 
 from .model import FetchedResponse, Meta
@@ -22,7 +22,7 @@ USER_AGENT = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36
     (requests.exceptions.Timeout, requests.exceptions.ConnectionError),
     max_tries=4,
 )
-def requests_get(url: str, headers: dict):
+def requests_get(url: str, headers: Dict[str, str]) -> Response:
     headers["User-Agent"] = USER_AGENT
     response = requests.get(
         url,
@@ -38,7 +38,7 @@ def requests_get(url: str, headers: dict):
 def cached_requests_get(
     url: str, meta: Optional[Meta], now: int
 ) -> Optional[FetchedResponse]:
-    req_headers = {}
+    req_headers: Dict[str, str] = {}
 
     if meta is not None:
         if meta.expired_at > now:

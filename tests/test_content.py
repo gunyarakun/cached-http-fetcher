@@ -84,9 +84,9 @@ def test_put_content():
     response._content = content
     meta = put_content(response, now, min_cache_age, content_max_age, content_storage)
     assert len(content_storage_dict) == 1
-    assert content_storage_dict[url]["value"] == content
-    assert content_storage_dict[url]["content_type"] is None
-    assert content_storage_dict[url]["cache_control"] == f"max-age={content_max_age}"
+    assert content_storage_dict[url].value == content
+    assert content_storage_dict[url].content_type is None
+    assert content_storage_dict[url].cache_control == f"max-age={content_max_age}"
     assert meta.cached_url == content_storage.cached_url(url)
     assert meta.etag == None
     assert meta.last_modified == None
@@ -99,7 +99,7 @@ def test_put_content():
     response.status_code = 200
     response.headers["Content-Type"] = "image/jpeg"
     meta = put_content(response, now, min_cache_age, content_max_age, content_storage)
-    assert content_storage_dict[url]["content_type"] == "image/jpeg"
+    assert content_storage_dict[url].content_type == "image/jpeg"
 
     # With etag
     etag = "test etag"

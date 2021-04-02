@@ -1,5 +1,5 @@
 from email.utils import mktime_tz, parsedate_tz
-from typing import Optional
+from typing import Dict, Optional
 
 from requests import Response
 from requests.structures import CaseInsensitiveDict
@@ -8,8 +8,8 @@ from .model import Meta
 from .storage import ContentStorageBase
 
 
-def parse_cache_control(cache_control: str):
-    directives = {}
+def parse_cache_control(cache_control: str) -> Dict[str, Optional[str]]:
+    directives: Dict[str, Optional[str]] = {}
 
     for part in cache_control.split(","):
         part = part.strip()

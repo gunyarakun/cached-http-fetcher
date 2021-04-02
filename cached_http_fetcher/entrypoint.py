@@ -1,5 +1,6 @@
 import multiprocessing
 import time
+from logging import Logger
 from typing import Iterable, Optional
 
 from .content import put_content
@@ -39,7 +40,7 @@ class FetchWorker(multiprocessing.Process):
                 break
 
             for url in url_set:
-                now = time.time()
+                now = int(time.time())
                 meta = get_meta(url, now, self._meta_storage, logger=self._logger)
                 for fetched_response in self._rate_limit_fetcher.fetch(url, meta, now):
                     self._response_queue.put(fetched_response)
@@ -119,7 +120,7 @@ def fetch_urls(
     fetch_count_window: int = 0,
     num_fetcher: Optional[int] = None,
     num_processor: Optional[int] = None,
-    logger,
+    logger: Logger,
 ) -> None:
     """
     Fetch urls, store meta data into meta_storage and store cached response body to content_storage
@@ -170,7 +171,11 @@ def fetch_urls(
 
 
 def get_cached_url(
-    url: str, *, now: int = time.time(), meta_storage: MetaStorageBase, logger
+    url: str,
+    *,
+    now: int = int(time.time()),
+    meta_storage: MetaStorageBase,
+    logger: Logger,
 ) -> Optional[str]:
     """
     Fetch a cached url for the given url
