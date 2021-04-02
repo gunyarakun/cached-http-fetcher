@@ -11,7 +11,7 @@ from logging import getLogger, StreamHandler, DEBUG
 
 sys.path.append(os.path.abspath(os.path.dirname(os.path.abspath(__file__)) + "/../src/"))
 
-from cached_http_fetcher.storage import StorageBase, ContentStorageBase
+from cached_http_fetcher.storage import MetaStorageBase, ContentStorageBase
 
 IMAGES = {
     "http://domain1.example.com/image.jpg": {

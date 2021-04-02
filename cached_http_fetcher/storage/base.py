@@ -1,7 +1,7 @@
 from typing import Optional
 from abc import ABC, abstractmethod
 
-class StorageBase(ABC):
+class MetaStorageBase(ABC):
     @abstractmethod
     def get(self, source_url: str) -> Optional[bytes]:
         pass

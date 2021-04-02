@@ -1,7 +1,7 @@
 from typing import Optional
-from .base import StorageBase, ContentStorageBase
+from .base import MetaStorageBase, ContentStorageBase
 
-class MemoryStorage(StorageBase):
+class MemoryStorage(MetaStorageBase):
     def __init__(self, **kwargs):
         self.dict = {}
 

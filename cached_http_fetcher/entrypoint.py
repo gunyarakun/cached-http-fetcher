@@ -6,7 +6,7 @@ from .content import put_content
 from .meta import get_meta, put_meta
 from .url_list import urls_per_domain
 from .rate_limit_fetcher import RateLimitFetcher
-from .storage import StorageBase, ContentStorageBase
+from .storage import MetaStorageBase, ContentStorageBase
 
 
 SHORT_CACHE_SECONDS = 3600
@@ -68,7 +68,7 @@ def url_queue_from_list(url_list: Iterable[str]) -> multiprocessing.Queue:
     return url_queue
 
 
-def fetch_urls_single(url_list: Iterable[str], *, meta_storage: StorageBase, content_storage: ContentStorageBase, max_fetch_count: int = 0, fetch_count_window: int = 0, logger) -> None:
+def fetch_urls_single(url_list: Iterable[str], *, meta_storage: MetaStorageBase, content_storage: ContentStorageBase, max_fetch_count: int = 0, fetch_count_window: int = 0, logger) -> None:
     """
     A single process version of fetch_urls()
     """
@@ -86,12 +86,12 @@ def fetch_urls_single(url_list: Iterable[str], *, meta_storage: StorageBase, con
     ow.close()
 
 
-def fetch_urls(url_list: Iterable[str], *, meta_storage: StorageBase, content_storage: ContentStorageBase, max_fetch_count: int = 0, fetch_count_window: int = 0, num_fetcher: Optional[int] = None, num_processor: Optional[int] = None, logger) -> None:
+def fetch_urls(url_list: Iterable[str], *, meta_storage: MetaStorageBase, content_storage: ContentStorageBase, max_fetch_count: int = 0, fetch_count_window: int = 0, num_fetcher: Optional[int] = None, num_processor: Optional[int] = None, logger) -> None:
     """
     Fetch urls, store meta data into meta_storage and store cached response body to content_storage
 
     :param url_list: List of urls to be fetched
-    :param meta_storage: A storage for meta data, implements StorageBase
+    :param meta_storage: A storage for meta data, implements MetaStorageBase
     :param content_storage: A storage for response contents, implements ContentStorageBase
     :param max_fetch_count: A max fetch count in fetch_count_window for rate limit. When 0, no rate limit.
     :param fetch_count_window: Seconds for counting fetch for rate limit. When 0, no rate limit.
@@ -133,10 +133,17 @@ def fetch_urls(url_list: Iterable[str], *, meta_storage: StorageBase, content_st
         j.join()
 
 
-def get_cached_url(url: str, meta_storage: StorageBase) -> Optional[str]:
-    now = time.time()
+def get_cached_url(url: str, *, now: int=time.time(), meta_storage: MetaStorageBase, logger) -> Optional[str]:
+    """
+    Fetch a cached url for the given url
 
-    meta = get_meta(url, now, meta_storage)
+    :param url: Source url
+    :param now: Current epoch for cache validation. When 0, expired cached url is returned.
+    :param meta_storage: A storage for meta data, implements MetaStorageBase
+    :param logger: Logger
+    """
+
+    meta = get_meta(url, now, meta_storage, logger=logger)
     if meta is None:
         return None
 

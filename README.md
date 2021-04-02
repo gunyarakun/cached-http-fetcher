@@ -12,7 +12,7 @@ pip install cached-http-fetcher
 
 The standard way to use this library is store metadata in Redis and store images itself in S3. The images in S3 can be accessed by the internet.
 
-You have to implement your own meta storage extends `StorageBase` with Redis and content storage extends `ContentStorageBase` with S3.
+You have to implement your own meta storage extends `MetaStorageBase` with Redis and content storage extends `ContentStorageBase` with S3.
 
 The whole sample code is following.
 
@@ -27,7 +27,7 @@ from botocore.exceptions import ClientError
 import logging
 
 
-class RedisStorage(cached_http_fetcher.StorageBase):
+class RedisMetaStorage(cached_http_fetcher.MetaStorageBase):
     def __init__(self, settings):
         self.redis = Redis.from_url("redis://redis:6379/0")
 
@@ -86,14 +86,14 @@ class S3ContentStorage(cached_http_fetcher.ContentStorageBase):
 
 
 url_list = ["http://www.example.com/image1.jpg", "http://www.example.com/image2.jpg"]
-meta_storage = RedisStorage(settings)
+meta_storage = RedisMetaStorage(settings)
 content_storage = S3ContentStorage(settings)
 logger = logging.getLogger(__name__)
 
 cached_http_fetcher.fetch_urls(url_list, meta_storage=meta_storage, content_storage=content_storage, logger=logger)
 
 for url in url_list:
-    cached_url = cached_http_fetcher.get_cached_url(url, meta_storage)
+    cached_url = cached_http_fetcher.get_cached_url(url, meta_storage=meta_storage, logger=logger)
     print(cached_url)
 ```
 
