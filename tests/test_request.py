@@ -1,5 +1,5 @@
 from cached_http_fetcher.model import Meta
-from cached_http_fetcher.request import cached_requests_get, requests_get
+from cached_http_fetcher.request import cached_requests_get
 
 
 def test_cached_requests_get(requests_mock):
@@ -69,3 +69,5 @@ def test_cached_requests_get(requests_mock):
     last_call = requests_mock.calls[-1]
     assert "If-None-Match" not in last_call.request.headers
     assert last_call.request.headers["If-Modified-Since"] == meta.last_modified
+
+# TODO: test_requests_get()

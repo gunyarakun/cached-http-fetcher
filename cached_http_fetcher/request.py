@@ -1,12 +1,10 @@
-import time
-
 # Ignore some warnings
 import warnings
 from typing import Dict, Optional
 
 import requests
 from backoff import expo, on_exception
-from requests import RequestException, Response
+from requests import Response
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
 
 from .model import FetchedResponse, Meta

@@ -88,8 +88,8 @@ def test_put_content():
     assert content_storage_dict[url].content_type is None
     assert content_storage_dict[url].cache_control == f"max-age={content_max_age}"
     assert meta.cached_url == content_storage.cached_url(url)
-    assert meta.etag == None
-    assert meta.last_modified == None
+    assert meta.etag is None
+    assert meta.last_modified is None
     assert meta.fetched_at == now
     assert meta.expired_at is not None  # tested in test_calc_expired_at()
 

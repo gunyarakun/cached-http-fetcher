@@ -13,9 +13,7 @@ sys.path.append(
     os.path.abspath(os.path.dirname(os.path.abspath(__file__)) + "/../src/")
 )
 
-from cached_http_fetcher.storage import ContentStorageBase, MetaStorageBase
-
-IMAGES = {
+URLS = {
     "http://domain1.example.com/image.jpg": {
         "width": 100,
         "height": 100,
@@ -63,26 +61,18 @@ IMAGES = {
     },
 }
 
-# create images
-for url, obj in IMAGES.items():
-    # generate color from url
-    color = int(hashlib.sha256(url.encode("utf-8")).hexdigest(), 16) % 0xFFFFFF
-
-    img = Image.new("RGB", (obj["width"], obj["height"]), color=color)
-    with io.BytesIO() as output:
-        img.save(output, format=obj["format"])
-        obj["image"] = output.getvalue()
+for url, obj in URLS.items():
+    obj["content"] = hashlib.sha256(url.encode("utf-8")).hexdigest()
 
 
 @pytest.fixture(scope="session", autouse=True)
 def url_list() -> Iterable[str]:
-    return IMAGES.keys()
+    return URLS.keys()
 
 
-# TODO: type hint
 @pytest.fixture(scope="session", autouse=True)
-def images():
-    return IMAGES
+def urls():
+    return URLS
 
 
 @pytest.fixture(scope="session", autouse=True)

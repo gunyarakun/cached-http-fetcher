@@ -90,7 +90,7 @@ def fetch_urls_single(
     content_storage: ContentStorageBase,
     max_fetch_count: int = 0,
     fetch_count_window: int = 0,
-    logger,
+    logger: Logger,
 ) -> None:
     """
     A single process version of fetch_urls()
@@ -137,6 +137,9 @@ def fetch_urls(
     fetch_jobs = []
     optimize_jobs = []
     url_queue = url_queue_from_list(url_list)
+
+    logger.info(f"fetch {len(url_list)} urls from {len(url_queue)} domains")
+
     response_queue = multiprocessing.Queue()
 
     num_fetcher = num_fetcher or multiprocessing.cpu_count() * 4
@@ -168,6 +171,8 @@ def fetch_urls(
     # Wait for optimizing all the caches
     for j in optimize_jobs:
         j.join()
+
+    logger.info(f"fetched {len(url_list)} urls from {len(url_queue)} domains")
 
 
 def get_cached_url(

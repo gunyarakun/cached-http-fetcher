@@ -1,4 +1,3 @@
-import pytest
 from cached_http_fetcher.url_list import urls_per_domain
 
 

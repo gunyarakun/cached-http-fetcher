@@ -1,11 +1,11 @@
 from dataclasses import dataclass
-from typing import Any, Dict, Optional
+from typing import Dict, Optional
 
 from .base import ContentStorageBase, MetaStorageBase
 
 
 class MemoryStorage(MetaStorageBase):
-    def __init__(self, **kwargs) -> None:
+    def __init__(self) -> None:
         self.dict: Dict[str, bytes] = {}
 
     def get(self, source_url: str) -> Optional[bytes]:
@@ -31,7 +31,7 @@ class ContentMemoryEntry:
 
 
 class ContentMemoryStorage(ContentStorageBase):
-    def __init__(self, **kwargs) -> None:
+    def __init__(self) -> None:
         self.dict: Dict[str, ContentMemoryEntry] = {}
 
     def get(self, source_url: str) -> Optional[bytes]:

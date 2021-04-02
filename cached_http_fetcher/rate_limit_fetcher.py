@@ -2,10 +2,10 @@ import sys
 import time
 
 from logging import Logger
+from requests import RequestException
 
-from .content import put_content
 from .model import Meta
-from .request import RequestException, cached_requests_get
+from .request import cached_requests_get
 
 
 class RateLimitFetcher:

@@ -1,4 +1,3 @@
-import pytest
 from cached_http_fetcher.storage.memory import MemoryStorage
 
 
