@@ -1,4 +1,3 @@
-import time
 import pickle
 from typing import Optional
 
@@ -10,15 +9,13 @@ def put_meta(source_url: str, meta: Meta, meta_storage: StorageBase) -> None:
     meta_storage.put(source_url, pickle.dumps(meta))
 
 
-def get_meta(url: str, meta_storage: StorageBase) -> Meta:
+def get_meta(url: str, now: int, meta_storage: StorageBase) -> Meta:
     """
     get a valid Meta instance from url
     """
 
     # TODO: Implement url normalizer
     norm_url = url
-
-    now = time.time()
 
     meta_pickled = meta_storage.get(norm_url)
     if meta_pickled is None:
@@ -27,6 +24,7 @@ def get_meta(url: str, meta_storage: StorageBase) -> Meta:
         meta = pickle.loads(meta_pickled)
         if meta.expired_at < now:
             meta_storage.delete(norm_url)
+            # TODO: Remove content
             return None
         return meta
     except:

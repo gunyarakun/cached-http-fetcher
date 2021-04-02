@@ -31,7 +31,7 @@ class FetchWorker(multiprocessing.Process):
 
             for url in url_set:
                 now = time.time()
-                meta = get_meta(url, self._meta_storage)
+                meta = get_meta(url, now, self._meta_storage)
                 for fetched_response in self._rate_limit_fetcher.fetch(url, meta, now):
                     self._response_queue.put(fetched_response)
 
@@ -134,11 +134,11 @@ def fetch_urls(url_list: Iterable[str], *, meta_storage: StorageBase, content_st
 
 
 def get_cached_url(url: str, meta_storage: StorageBase) -> Optional[str]:
-    meta = get_meta(url, meta_storage)
+    now = time.time()
+
+    meta = get_meta(url, now, meta_storage)
     if meta is None:
         return None
-    now = time.time()
-    if meta.expired_at <= now:
-        return None
+
     cached_url = meta.cached_url
     return cached_url

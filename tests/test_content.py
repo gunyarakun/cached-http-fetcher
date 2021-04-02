@@ -105,3 +105,23 @@ def test_put_content():
     response.headers["Last-Modified"] = last_modified
     meta = put_content(response, now, min_cache_age, content_max_age, content_storage)
     assert meta.last_modified == last_modified
+
+    # 304
+    content_storage = ContentMemoryStorage()
+    content_storage_dict = content_storage.dict_for_debug()
+    response = Response()
+    response.url = url
+    response.status_code = 304
+    meta = put_content(response, now, min_cache_age, content_max_age, content_storage)
+    assert len(content_storage) == 0 # Not saved
+    assert meta.cached_url == content_storage.cached_url(url)
+
+    # 500
+    content_storage = ContentMemoryStorage()
+    content_storage_dict = content_storage.dict_for_debug()
+    response = Response()
+    response.url = url
+    response.status_code = 500
+    meta = put_content(response, now, min_cache_age, content_max_age, content_storage)
+    assert len(content_storage) == 0 # Not saved
+    assert meta.cached_url is None

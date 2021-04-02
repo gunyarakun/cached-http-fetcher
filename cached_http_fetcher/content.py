@@ -69,9 +69,9 @@ def put_content(response: Response, fetched_at: int, min_cache_age: int, content
         )
     # meta for non cacheable content
     return Meta(
-        cached_url=cached_url,
+        cached_url=None,
         etag=None,
         last_modified=None,
         fetched_at=fetched_at,
-        expired_at=now + min_cache_age
+        expired_at=fetched_at + min_cache_age
     )
