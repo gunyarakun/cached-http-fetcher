@@ -8,7 +8,7 @@ class Meta:
     etag: Optional[str]
     last_modified: Optional[str]
     fetched_at: int
-    expired_at: Optional[int]
+    expired_at: int
 
 
 @dataclass(frozen=True)

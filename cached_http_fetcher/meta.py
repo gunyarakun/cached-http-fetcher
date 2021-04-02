@@ -9,7 +9,7 @@ def put_meta(source_url: str, meta: Meta, meta_storage: StorageBase) -> None:
     meta_storage.put(source_url, pickle.dumps(meta))
 
 
-def get_meta(url: str, now: int, meta_storage: StorageBase) -> Meta:
+def get_meta(url: str, now: int, meta_storage: StorageBase) -> Optional[Meta]:
     """
     get a valid Meta instance from url
     """
@@ -28,5 +28,6 @@ def get_meta(url: str, now: int, meta_storage: StorageBase) -> Meta:
             return None
         return meta
     except:
+        # Remove invalid entry
         meta_storage.delete(norm_url)
         raise
