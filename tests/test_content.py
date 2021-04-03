@@ -58,7 +58,7 @@ def test_calc_expired_at():
     )
     assert expired_at == now + min_cache_age
 
-    # Expires: <now on RFC 2822>
+    # Expires: <future on RFC 2822>
     expires = now + min_cache_age + 434553
     expired_at = calc_expired_at(
         CaseInsensitiveDict({"expires": formatdate(expires)}), now, min_cache_age
