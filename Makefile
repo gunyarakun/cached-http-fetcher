@@ -1,7 +1,8 @@
 .PHONY: test dist
 
 test:
-	pip install -e .[test] && pytest -v
+	pip install -e .[test] && pytest -v --cov
+
 
 dist:
 	rm -rf dist
