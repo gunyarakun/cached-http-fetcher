@@ -1,36 +1,47 @@
-# Ignore some warnings
+import random
+import time
 import warnings
 from typing import Dict, Optional
 
 import requests
-from backoff import expo, on_exception
 from requests import Response
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
 
 from .model import FetchedResponse, Meta
 
+# Ignore some warnings
 warnings.simplefilter("ignore", UserWarning)
 warnings.simplefilter("ignore", InsecureRequestWarning)
 
 USER_AGENT = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/88.0.4324.192 Safari/537.36"
+MAX_TRIES = 4
+TIMEOUT = 10
 
 
-@on_exception(
-    expo,
-    (requests.exceptions.Timeout, requests.exceptions.ConnectionError),
-    max_tries=4,
-)
 def requests_get(url: str, headers: Dict[str, str]) -> Response:
     headers["User-Agent"] = USER_AGENT
-    response = requests.get(
-        url,
-        headers=headers,
-        verify=False,
-        allow_redirects=True,
-        stream=True,
-        timeout=10,
-    )
-    return response
+    tries = 0
+    wait = 1
+    while tries < MAX_TRIES:
+        try:
+            response = requests.get(
+                url,
+                headers=headers,
+                verify=False,
+                allow_redirects=True,
+                stream=True,
+                timeout=TIMEOUT,
+            )
+            return response
+        except requests.exceptions.ConnectionError:
+            # TODO: Check the host existence
+            pass
+        except requests.exceptions.Timeout:
+            pass
+        time.sleep(wait)
+        wait *= 2
+        wait += random.uniform(wait)  # jitter
+        tries += 1
 
 
 def cached_requests_get(
