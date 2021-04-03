@@ -1,5 +1,8 @@
 # Cached http fetcher
 
+[![Test](https://github.com/gunyarakun/cached-http-fetcher/actions/workflows/test.yaml/badge.svg)](https://github.com/gunyarakun/cached-http-fetcher/actions/workflows/test.yaml)
+[![PyPI version](https://badge.fury.io/py/cached-http-fetcher.svg)](https://badge.fury.io/py/cached-http-fetcher)
+
 This library fetches data via HTTP(S), stores into some storages which is accessible from the internet.
 
 ## Install
