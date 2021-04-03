@@ -1,7 +1,7 @@
 .PHONY: test dist
 
 test:
-	python setup.py test
+	pip install -e .[test] && pytest -v
 
 dist:
 	rm -rf dist
