@@ -75,14 +75,14 @@ def urls():
 
 @pytest.fixture(scope="session", autouse=True)
 def logger() -> Iterable[str]:
-    l = getLogger(__name__)
+    log = getLogger(__name__)
     handler = StreamHandler()
     handler.setLevel(DEBUG)
-    l.setLevel(DEBUG)
-    l.addHandler(handler)
-    l.propagate = False
+    log.setLevel(DEBUG)
+    log.addHandler(handler)
+    log.propagate = False
 
-    return l
+    return log
 
 
 @pytest.fixture(scope="function")

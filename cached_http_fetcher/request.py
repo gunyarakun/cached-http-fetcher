@@ -13,7 +13,10 @@ from .model import FetchedResponse, Meta
 warnings.simplefilter("ignore", UserWarning)
 warnings.simplefilter("ignore", InsecureRequestWarning)
 
-USER_AGENT = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/88.0.4324.192 Safari/537.36"
+USER_AGENT = (
+    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
+    "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/88.0.4324.192 Safari/537.36"
+)
 MAX_TRIES = 4
 TIMEOUT = 10
 

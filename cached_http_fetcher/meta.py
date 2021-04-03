@@ -34,7 +34,7 @@ def get_meta(
             # TODO: Remove content
             return None
         return meta
-    except:
+    except Exception:
         # Remove invalid entry
         logger.error(f"Invalid meta data: {norm_url}")
         raise

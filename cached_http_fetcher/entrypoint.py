@@ -116,7 +116,7 @@ def fetch_urls_single(
     ow = OptimizeWorker(response_queue, meta_storage, content_storage)
     ow.run()
     ow.close()
-    logger.info(f"fetched")
+    logger.info("fetched")
 
 
 def fetch_urls(
@@ -178,7 +178,7 @@ def fetch_urls(
     for j in optimize_jobs:
         j.join()
 
-    logger.info(f"fetched")
+    logger.info("fetched")
 
 
 def get_cached_url(

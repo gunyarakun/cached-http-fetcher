@@ -39,7 +39,7 @@ def calc_expired_at(
         if "expires" in response_headers:
             expires = mktime_tz(parsedate_tz(response_headers["expires"]))
             return now + max(expires - now, min_cache_age)
-    except:
+    except Exception:
         pass
     return now + min_cache_age
 
