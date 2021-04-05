@@ -41,12 +41,17 @@ class FetchWorker(multiprocessing.Process):
 
             for url in url_set:
                 now = int(time.time())
-                meta = get_meta(url, now, self._meta_storage, logger=self._logger)
-                for fetched_response in self._rate_limit_fetcher.fetch(url, meta, now):
-                    self._response_queue.put(fetched_response)
+                try:
+                    meta = get_meta(url, now, self._meta_storage, logger=self._logger)
+                    for fetched_response in self._rate_limit_fetcher.fetch(
+                        url, meta, now
+                    ):
+                        self._response_queue.put(fetched_response)
+                except Exception as ex:
+                    self._logger.exception("Error on FetchWorker: %s", ex)
 
 
-class OptimizeWorker(multiprocessing.Process):
+class ContentWorker(multiprocessing.Process):
     def __init__(self, response_queue, meta_storage, content_storage):
         super().__init__()
         self._response_queue = response_queue
@@ -60,17 +65,20 @@ class OptimizeWorker(multiprocessing.Process):
             if fetched_response is None:
                 break
 
-            # TODO: Apply filters to the cache
-            filtered_response = fetched_response.response
+            try:
+                # TODO: Apply filters to the cache
+                filtered_response = fetched_response.response
 
-            meta = put_content(
-                filtered_response,
-                fetched_response.fetched_at,
-                SHORT_CACHE_SECONDS,
-                CONTENT_MAX_AGE,
-                self._content_storage,
-            )
-            put_meta(filtered_response.url, meta, self._meta_storage)
+                meta = put_content(
+                    filtered_response,
+                    fetched_response.fetched_at,
+                    SHORT_CACHE_SECONDS,
+                    CONTENT_MAX_AGE,
+                    self._content_storage,
+                )
+                put_meta(filtered_response.url, meta, self._meta_storage)
+            except Exception as ex:
+                self._logger.exception("Error on ContentWorker: %s", ex)
 
 
 def url_queue_from_iterable(
@@ -113,7 +121,7 @@ def fetch_urls_single(
     fw.run()
     fw.close()
     response_queue.put(None)
-    ow = OptimizeWorker(response_queue, meta_storage, content_storage)
+    ow = ContentWorker(response_queue, meta_storage, content_storage)
     ow.run()
     ow.close()
     logger.info("fetched")
@@ -159,7 +167,7 @@ def fetch_urls(
         p.start()
 
     for _ in range(num_processor):
-        p = OptimizeWorker(response_queue, meta_storage, content_storage)
+        p = ContentWorker(response_queue, meta_storage, content_storage)
         optimize_jobs.append(p)
         p.start()
 
