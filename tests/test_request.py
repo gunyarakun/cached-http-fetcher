@@ -2,7 +2,7 @@ from cached_http_fetcher.model import Meta
 from cached_http_fetcher.request import cached_requests_get
 
 
-def test_cached_requests_get(requests_mock):
+def test_cached_requests_get(requests_mock, logger):
     now = 1617355068
     past = now - 3600
     future = now + 3600
@@ -10,7 +10,7 @@ def test_cached_requests_get(requests_mock):
     requests_mock.add(requests_mock.GET, url, body=b"test")
 
     # fetch without meta
-    fetched_response = cached_requests_get(url, None, now)
+    fetched_response = cached_requests_get(url, None, now, logger=logger)
     assert fetched_response is not None
     assert len(requests_mock.calls) == 1
     assert fetched_response.url == url
@@ -29,7 +29,7 @@ def test_cached_requests_get(requests_mock):
         fetched_at=past,
         expired_at=future,
     )
-    fetched_response = cached_requests_get(url, meta, now)
+    fetched_response = cached_requests_get(url, meta, now, logger=logger)
     assert fetched_response is None
 
     # fetch with expired meta including etag
@@ -40,7 +40,7 @@ def test_cached_requests_get(requests_mock):
         fetched_at=past,
         expired_at=past,
     )
-    fetched_response = cached_requests_get(url, meta, now)
+    fetched_response = cached_requests_get(url, meta, now, logger=logger)
     assert fetched_response is not None
     assert len(requests_mock.calls) == 2
     assert fetched_response.url == url
@@ -59,7 +59,7 @@ def test_cached_requests_get(requests_mock):
         fetched_at=past,
         expired_at=past,
     )
-    fetched_response = cached_requests_get(url, meta, now)
+    fetched_response = cached_requests_get(url, meta, now, logger=logger)
     assert fetched_response is not None
     assert len(requests_mock.calls) == 3
     assert fetched_response.url == url

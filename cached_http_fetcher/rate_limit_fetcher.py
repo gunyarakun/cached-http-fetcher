@@ -1,10 +1,11 @@
 import sys
 import time
 from logging import Logger
+from typing import Generator
 
 from requests import RequestException
 
-from .model import Meta
+from .model import FetchedResponse, Meta
 from .request import cached_requests_get
 
 
@@ -22,7 +23,9 @@ class RateLimitFetcher:
         self.fetch_count_start = time.time()
         self.fetch_count = 0
 
-    def fetch(self, url: str, meta: Meta, now: int):
+    def fetch(
+        self, url: str, meta: Meta, now: int
+    ) -> Generator[FetchedResponse, None, None]:
         try:
             elapsed = now - self.fetch_count_start
             remaining = self._fetch_count_window - elapsed
@@ -30,7 +33,7 @@ class RateLimitFetcher:
                 self.fetch_count_start = time.time()
                 self.fetch_count = 0
 
-            fetched_response = cached_requests_get(url, meta, now)
+            fetched_response = cached_requests_get(url, meta, now, logger=self._logger)
 
             # fetched_response can be None when we don't need to fetch the cache
             if fetched_response is not None:

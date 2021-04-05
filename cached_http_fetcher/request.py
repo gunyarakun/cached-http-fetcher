@@ -1,6 +1,7 @@
 import random
 import time
 import warnings
+from logging import Logger
 from typing import Dict, Optional
 
 import requests
@@ -48,7 +49,7 @@ def requests_get(url: str, headers: Dict[str, str]) -> Response:
 
 
 def cached_requests_get(
-    url: str, meta: Optional[Meta], now: int
+    url: str, meta: Optional[Meta], now: int, *, logger: Logger
 ) -> Optional[FetchedResponse]:
     req_headers: Dict[str, str] = {}
 
@@ -62,6 +63,10 @@ def cached_requests_get(
             req_headers["If-Modified-Since"] = meta.last_modified
 
     response = requests_get(url, req_headers)
+
+    if response is None:
+        logger.warn(f"Cannot get {url}")
+        return None
 
     return FetchedResponse(
         url=url,
