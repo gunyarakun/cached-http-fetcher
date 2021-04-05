@@ -63,7 +63,7 @@ class S3ContentStorage(cached_http_fetcher.ContentStorageBase):
         s3_key += r.netloc + r.path
         if r.query:
             s3_key += "?" + r.query
-        return s3_key
+        return quote(s3_key)
 
     def get(self, source_url: str) -> bytes:
         try:
@@ -85,7 +85,7 @@ class S3ContentStorage(cached_http_fetcher.ContentStorageBase):
         self.s3.put_object(**config)
 
     def cached_url(self, source_url: str) -> str:
-        return f"https://{self.bucket}.s3.us-west-2.amazonaws.com/{quote(S3ContentStorage.s3_key(source_url)})"
+        return f"https://{self.bucket}.s3.us-west-2.amazonaws.com/{S3ContentStorage.s3_key(source_url)}"
 
 
 url_list = ["http://www.example.com/image1.jpg", "http://www.example.com/image2.jpg"]
