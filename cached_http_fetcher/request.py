@@ -43,7 +43,7 @@ def requests_get(url: str, headers: Dict[str, str]) -> Response:
             pass
         time.sleep(wait)
         wait *= 2
-        wait += random.uniform(wait)  # jitter
+        wait += random.uniform(0, wait)  # jitter
         tries += 1
 
 
