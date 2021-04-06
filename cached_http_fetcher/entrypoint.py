@@ -9,7 +9,7 @@ from .rate_limit_fetcher import RateLimitFetcher
 from .storage import ContentStorageBase, MetaStorageBase
 from .url_list import urls_per_domain
 
-SHORT_CACHE_SECONDS = 3600
+DEFAULT_MIN_CACHE_AGE = 86400
 CONTENT_MAX_AGE = 3600
 
 
@@ -54,9 +54,10 @@ class FetchWorker(multiprocessing.Process):
 
 
 class ContentWorker(multiprocessing.Process):
-    def __init__(self, response_queue, meta_storage, content_storage):
+    def __init__(self, response_queue, min_cache_age, meta_storage, content_storage):
         super().__init__()
         self._response_queue = response_queue
+        self._min_cache_age = min_cache_age
         self._meta_storage = meta_storage
         self._content_storage = content_storage
         self._logger = multiprocessing.get_logger()
@@ -74,7 +75,7 @@ class ContentWorker(multiprocessing.Process):
                 meta = put_content(
                     filtered_response,
                     fetched_response.fetched_at,
-                    SHORT_CACHE_SECONDS,
+                    self._min_cache_age,
                     CONTENT_MAX_AGE,
                     self._content_storage,
                 )
@@ -107,6 +108,7 @@ def fetch_urls_single(
     content_storage: ContentStorageBase,
     max_fetch_count: int = 0,
     fetch_count_window: int = 0,
+    min_cache_age: int = DEFAULT_MIN_CACHE_AGE,
     logger: Logger,
 ) -> None:
     """
@@ -123,7 +125,7 @@ def fetch_urls_single(
     fw.run()
     fw.close()
     response_queue.put(None)
-    ow = ContentWorker(response_queue, meta_storage, content_storage)
+    ow = ContentWorker(response_queue, min_cache_age, meta_storage, content_storage)
     ow.run()
     ow.close()
     logger.info("fetched")
@@ -136,6 +138,7 @@ def fetch_urls(
     *,
     max_fetch_count: int = 0,
     fetch_count_window: int = 0,
+    min_cache_age: int = DEFAULT_MIN_CACHE_AGE,
     num_fetcher: Optional[int] = None,
     num_processor: Optional[int] = None,
     logger: Logger,
