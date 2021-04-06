@@ -96,8 +96,8 @@ logger = logging.getLogger(__name__)
 cached_http_fetcher.fetch_urls(url_list, meta_storage, content_storage, logger=logger)
 
 for url in url_list:
-    cached_url = cached_http_fetcher.get_cached_url(url, meta_storage, logger=logger)
-    print(cached_url)
+    meta = cached_http_fetcher.get_meta(url, meta_storage, logger=logger)
+    print(meta.cached_url)
 ```
 
 ## Develop
