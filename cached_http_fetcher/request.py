@@ -72,4 +72,5 @@ def cached_requests_get(
         url=url,
         fetched_at=now,
         response=response,
+        meta=meta
     )

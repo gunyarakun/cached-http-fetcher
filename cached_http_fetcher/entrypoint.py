@@ -74,6 +74,7 @@ class ContentWorker(multiprocessing.Process):
 
                 meta = put_content(
                     filtered_response,
+                    fetched_response.meta,
                     fetched_response.fetched_at,
                     self._min_cache_age,
                     CONTENT_MAX_AGE,

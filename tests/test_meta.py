@@ -22,6 +22,7 @@ def test_get_valid_meta(logger):
         cached_url=cached_url,
         etag=None,
         last_modified=None,
+        content_sha1=None,
         fetched_at=now,
         expired_at=future,
     )
@@ -34,6 +35,7 @@ def test_get_valid_meta(logger):
         cached_url=cached_url,
         etag=None,
         last_modified=None,
+        content_sha1=None,
         fetched_at=now,
         expired_at=past,
     )

@@ -8,7 +8,7 @@ def test_rate_limit_fetcher(mocker: MockerFixture, logger):
     past = now - 3600
     future = now + 3600
     url = "http://example.com/image1.jpg"
-    mock_fetched_response = FetchedResponse(url=url, fetched_at=now, response=None)
+    mock_fetched_response = FetchedResponse(url=url, fetched_at=now, response=None, meta=None)
 
     mock = mocker.patch(
         "cached_http_fetcher.rate_limit_fetcher.cached_requests_get",
@@ -23,6 +23,7 @@ def test_rate_limit_fetcher(mocker: MockerFixture, logger):
         cached_url=url,
         etag=None,
         last_modified=None,
+        content_sha1=None,
         fetched_at=past,
         expired_at=future,
     )

@@ -1,5 +1,6 @@
 from email.utils import mktime_tz, parsedate_tz
 from typing import Dict, Optional
+import hashlib
 
 from requests import Response
 from requests.structures import CaseInsensitiveDict
@@ -46,6 +47,7 @@ def calc_expired_at(
 
 def put_content(
     response: Response,
+    old_meta: Optional[Meta],
     fetched_at: int,
     min_cache_age: int,
     content_max_age: int,
@@ -59,13 +61,21 @@ def put_content(
         response_headers = CaseInsensitiveDict(response.headers)
 
         if response.status_code == 200:
-            content_type = response_headers.get("content-type", None)
-            content_storage.put_content(
-                source_url,
-                response.content,
-                content_type=content_type,
-                cache_control=f"max-age={content_max_age}",
-            )
+            content = response.content or b""
+            content_sha1 = hashlib.sha1(content).digest()
+
+            if old_meta is None or old_meta.content_sha1 != content_sha1:
+                content_type = response_headers.get("content-type", None)
+                content_storage.put_content(
+                    source_url,
+                    content,
+                    content_type=content_type,
+                    cache_control=f"max-age={content_max_age}",
+                )
+        else:
+            if old_meta is None:
+                raise ValueError("old meta must be set on 304")
+            content_sha1 = old_meta.content_sha1
 
         expired_at = calc_expired_at(response_headers, fetched_at, min_cache_age)
 
@@ -73,6 +83,7 @@ def put_content(
             cached_url=cached_url,
             etag=response_headers.get("etag", None),
             last_modified=response_headers.get("last-modified", None),
+            content_sha1=content_sha1,
             fetched_at=fetched_at,
             expired_at=expired_at,
         )
@@ -81,6 +92,7 @@ def put_content(
         cached_url=None,
         etag=None,
         last_modified=None,
+        content_sha1=None,
         fetched_at=fetched_at,
         expired_at=fetched_at + min_cache_age,
     )

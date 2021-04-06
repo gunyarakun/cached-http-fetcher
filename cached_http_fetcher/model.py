@@ -9,6 +9,7 @@ class Meta:
     cached_url: Optional[str]  # None for non 200 responses
     etag: Optional[str]
     last_modified: Optional[str]
+    content_sha1: Optional[bytes]
     fetched_at: int
     expired_at: int
 
@@ -18,3 +19,4 @@ class FetchedResponse:
     url: str
     fetched_at: int
     response: requests.Request
+    meta: Optional[Meta]

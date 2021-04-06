@@ -26,6 +26,7 @@ def test_cached_requests_get(requests_mock, logger):
         cached_url=url,
         etag=None,
         last_modified=None,
+        content_sha1=None,
         fetched_at=past,
         expired_at=future,
     )
@@ -37,6 +38,7 @@ def test_cached_requests_get(requests_mock, logger):
         cached_url=url,
         etag="deadbeef",
         last_modified=None,
+        content_sha1=None,
         fetched_at=past,
         expired_at=past,
     )
@@ -56,6 +58,7 @@ def test_cached_requests_get(requests_mock, logger):
         cached_url=url,
         etag=None,
         last_modified="Wed, 21 Oct 2015 07:28:00 GMT",
+        content_sha1=None,
         fetched_at=past,
         expired_at=past,
     )
