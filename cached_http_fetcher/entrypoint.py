@@ -152,8 +152,8 @@ def fetch_urls(
     fetch_count_window: int = 0,
     min_cache_age: int = DEFAULT_MIN_CACHE_AGE,
     content_max_age: int = DEFAULT_CONTENT_MAX_AGE,
-    num_fetcher: Optional[int] = None,
-    num_processor: Optional[int] = None,
+    num_fetch_processes: Optional[int] = None,
+    num_content_processes: Optional[int] = None,
     logger: Logger,
 ) -> None:
     """
@@ -164,8 +164,8 @@ def fetch_urls(
     :param content_storage: A storage for response contents, implements ContentStorageBase
     :param max_fetch_count: A max fetch count in fetch_count_window for rate limit. When 0, no rate limit.
     :param fetch_count_window: Seconds for counting fetch for rate limit. When 0, no rate limit.
-    :param num_fetcher: A number of fetcher processes
-    :param num_processor: A number of processer processes
+    :param num_fetch_processes: A number of fetcher processes
+    :param num_content_processes: A number of processer processes
     :param logger: Logger
     """
     fetch_jobs = []
@@ -174,17 +174,17 @@ def fetch_urls(
 
     response_queue = multiprocessing.Queue()
 
-    num_fetcher = num_fetcher or multiprocessing.cpu_count() * 4
-    num_processor = num_processor or multiprocessing.cpu_count()
+    num_fetch_processes = num_fetch_processes or multiprocessing.cpu_count() * 4
+    num_content_processes = num_content_processes or multiprocessing.cpu_count()
 
-    for _ in range(num_fetcher):
+    for _ in range(num_fetch_processes):
         p = FetchWorker(
             url_queue, response_queue, meta_storage, max_fetch_count, fetch_count_window
         )
         fetch_jobs.append(p)
         p.start()
 
-    for _ in range(num_processor):
+    for _ in range(num_content_processes):
         p = ContentWorker(
             response_queue,
             min_cache_age,
