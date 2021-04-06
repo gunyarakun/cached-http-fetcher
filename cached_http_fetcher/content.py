@@ -1,6 +1,6 @@
+import hashlib
 from email.utils import mktime_tz, parsedate_tz
 from typing import Dict, Optional
-import hashlib
 
 from requests import Response
 from requests.structures import CaseInsensitiveDict

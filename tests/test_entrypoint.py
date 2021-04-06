@@ -1,4 +1,5 @@
-from cached_http_fetcher.entrypoint import fetch_urls_single, get_cached_url
+from cached_http_fetcher.entrypoint import fetch_urls_single
+from cached_http_fetcher.meta import get_meta
 from cached_http_fetcher.storage import ContentMemoryStorage, MemoryStorage
 
 
@@ -13,10 +14,8 @@ def test_fetch_urls_single_memory(urls, logger, requests_mock):
 
     # Not yet cached
     for url in url_list:
-        cached_url = get_cached_url(
-            url, meta_storage=meta_memory_storage, logger=logger
-        )
-        assert cached_url is None
+        meta = get_meta(url, meta_storage=meta_memory_storage, logger=logger)
+        assert meta is None
 
     fetch_urls_single(
         url_list,
@@ -34,10 +33,10 @@ def test_fetch_urls_single_memory(urls, logger, requests_mock):
 
     # get cached urls
     for url in url_list:
-        cached_url = get_cached_url(
+        meta = get_meta(
             url, meta_storage=meta_memory_storage, logger=logger
         )
-        assert cached_url == content_memory_storage.cached_url(url)
+        assert meta.cached_url == content_memory_storage.cached_url(url)
 
     # all responses must be cached
     fetch_urls_single(

@@ -54,7 +54,14 @@ class FetchWorker(multiprocessing.Process):
 
 
 class ContentWorker(multiprocessing.Process):
-    def __init__(self, response_queue, min_cache_age: int, content_max_age: int, meta_storage: MetaStorageBase, content_storage: ContentStorageBase):
+    def __init__(
+        self,
+        response_queue,
+        min_cache_age: int,
+        content_max_age: int,
+        meta_storage: MetaStorageBase,
+        content_storage: ContentStorageBase,
+    ):
         super().__init__()
         self._response_queue = response_queue
         self._min_cache_age = min_cache_age
@@ -128,7 +135,9 @@ def fetch_urls_single(
     fw.run()
     fw.close()
     response_queue.put(None)
-    ow = ContentWorker(response_queue, min_cache_age, content_max_age, meta_storage, content_storage)
+    ow = ContentWorker(
+        response_queue, min_cache_age, content_max_age, meta_storage, content_storage
+    )
     ow.run()
     ow.close()
     logger.info("fetched")
@@ -176,7 +185,13 @@ def fetch_urls(
         p.start()
 
     for _ in range(num_processor):
-        p = ContentWorker(response_queue, min_cache_age, content_max_age, meta_storage, content_storage)
+        p = ContentWorker(
+            response_queue,
+            min_cache_age,
+            content_max_age,
+            meta_storage,
+            content_storage,
+        )
         optimize_jobs.append(p)
         p.start()
 
@@ -196,27 +211,3 @@ def fetch_urls(
         j.join()
 
     logger.info("fetched")
-
-
-def get_cached_url(
-    url: str,
-    meta_storage: MetaStorageBase,
-    *,
-    now: int = int(time.time()),
-    logger: Logger,
-) -> Optional[str]:
-    """
-    Fetch a cached url for the given url
-
-    :param url: Source url
-    :param now: Current epoch for cache validation. When 0, expired cached url is returned.
-    :param meta_storage: A storage for meta data, implements MetaStorageBase
-    :param logger: Logger
-    """
-
-    meta = get_valid_meta(url, now, meta_storage, logger=logger)
-    if meta is None:
-        return None
-
-    cached_url = meta.cached_url
-    return cached_url

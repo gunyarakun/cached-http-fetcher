@@ -68,9 +68,4 @@ def cached_requests_get(
         logger.warn(f"Cannot get {url}")
         return None
 
-    return FetchedResponse(
-        url=url,
-        fetched_at=now,
-        response=response,
-        meta=meta
-    )
+    return FetchedResponse(url=url, fetched_at=now, response=response, meta=meta)

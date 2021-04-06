@@ -82,7 +82,9 @@ def test_put_content():
     response.status_code = 200
     response._content_consumed = True
     response._content = content
-    meta = put_content(response, None, now, min_cache_age, content_max_age, content_storage)
+    meta = put_content(
+        response, None, now, min_cache_age, content_max_age, content_storage
+    )
     assert len(content_storage_dict) == 1
     assert content_storage_dict[url].value == content
     assert content_storage_dict[url].content_type is None
@@ -98,7 +100,9 @@ def test_put_content():
     response.url = url
     response.status_code = 200
     response.headers["Content-Type"] = "image/jpeg"
-    meta = put_content(response, None, now, min_cache_age, content_max_age, content_storage)
+    meta = put_content(
+        response, None, now, min_cache_age, content_max_age, content_storage
+    )
     assert content_storage_dict[url].content_type == "image/jpeg"
 
     # With etag
@@ -107,7 +111,9 @@ def test_put_content():
     response.url = url
     response.status_code = 200
     response.headers["ETag"] = etag
-    meta = put_content(response, meta, now, min_cache_age, content_max_age, content_storage)
+    meta = put_content(
+        response, meta, now, min_cache_age, content_max_age, content_storage
+    )
     assert meta.etag == etag
 
     # With last-modified
@@ -116,7 +122,9 @@ def test_put_content():
     response.url = url
     response.status_code = 200
     response.headers["Last-Modified"] = last_modified
-    meta = put_content(response, meta, now, min_cache_age, content_max_age, content_storage)
+    meta = put_content(
+        response, meta, now, min_cache_age, content_max_age, content_storage
+    )
     assert meta.last_modified == last_modified
 
     # 304
@@ -125,7 +133,9 @@ def test_put_content():
     response = Response()
     response.url = url
     response.status_code = 304
-    meta = put_content(response, meta, now, min_cache_age, content_max_age, content_storage)
+    meta = put_content(
+        response, meta, now, min_cache_age, content_max_age, content_storage
+    )
     assert len(content_storage_dict) == 0  # Not saved
     assert meta.cached_url == content_storage.cached_url(url)
 
@@ -135,6 +145,8 @@ def test_put_content():
     response = Response()
     response.url = url
     response.status_code = 500
-    meta = put_content(response, None, now, min_cache_age, content_max_age, content_storage)
+    meta = put_content(
+        response, None, now, min_cache_age, content_max_age, content_storage
+    )
     assert len(content_storage_dict) == 0  # Not saved
     assert meta.cached_url is None
