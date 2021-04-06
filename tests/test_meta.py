@@ -1,9 +1,9 @@
-from cached_http_fetcher.meta import get_meta, put_meta
+from cached_http_fetcher.meta import get_valid_meta, put_meta
 from cached_http_fetcher.model import Meta
 from cached_http_fetcher.storage import MemoryStorage
 
 
-def test_get_meta(logger):
+def test_get_valid_meta(logger):
     now = 1617355068
     future = now + 3600
     past = now - 3600
@@ -14,7 +14,7 @@ def test_get_meta(logger):
     meta_storage_dict = meta_storage.dict_for_debug()
 
     # get empty
-    meta = get_meta(url, now, meta_storage, logger=logger)
+    meta = get_valid_meta(url, now, meta_storage, logger=logger)
     assert meta is None
 
     # get non-expired meta
@@ -26,7 +26,7 @@ def test_get_meta(logger):
         expired_at=future,
     )
     put_meta(url, meta, meta_storage)
-    assert get_meta(url, now, meta_storage, logger=logger) == meta
+    assert get_valid_meta(url, now, meta_storage, logger=logger) == meta
     assert len(meta_storage_dict) == 1  # this entry will be deleted on the next call
 
     # get expired meta
@@ -38,5 +38,5 @@ def test_get_meta(logger):
         expired_at=past,
     )
     put_meta(url, meta, meta_storage)
-    assert get_meta(url, now, meta_storage, logger=logger) is None
-    assert len(meta_storage_dict) == 0  # deleted
+    assert get_valid_meta(url, now, meta_storage, logger=logger) is None
+    assert len(meta_storage_dict) == 1  # not deleted

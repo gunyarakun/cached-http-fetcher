@@ -1,7 +1,7 @@
 import sys
 import time
 from logging import Logger
-from typing import Generator
+from typing import Generator, Optional
 
 from requests import RequestException
 
@@ -24,7 +24,7 @@ class RateLimitFetcher:
         self.fetch_count = 0
 
     def fetch(
-        self, url: str, meta: Meta, now: int
+        self, url: str, meta: Optional[Meta], now: int
     ) -> Generator[FetchedResponse, None, None]:
         try:
             elapsed = now - self.fetch_count_start

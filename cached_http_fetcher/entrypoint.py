@@ -4,7 +4,7 @@ from logging import Logger
 from typing import Iterable, Optional
 
 from .content import put_content
-from .meta import get_meta, put_meta
+from .meta import get_valid_meta, put_meta
 from .rate_limit_fetcher import RateLimitFetcher
 from .storage import ContentStorageBase, MetaStorageBase
 from .url_list import urls_per_domain
@@ -42,7 +42,9 @@ class FetchWorker(multiprocessing.Process):
             for url in url_set:
                 now = int(time.time())
                 try:
-                    meta = get_meta(url, now, self._meta_storage, logger=self._logger)
+                    meta = get_valid_meta(
+                        url, now, self._meta_storage, logger=self._logger
+                    )
                     for fetched_response in self._rate_limit_fetcher.fetch(
                         url, meta, now
                     ):
@@ -205,7 +207,7 @@ def get_cached_url(
     :param logger: Logger
     """
 
-    meta = get_meta(url, now, meta_storage, logger=logger)
+    meta = get_valid_meta(url, now, meta_storage, logger=logger)
     if meta is None:
         return None
 

@@ -1,4 +1,5 @@
 import pickle
+from logging import Logger
 from typing import Optional
 
 from .model import Meta
@@ -10,7 +11,27 @@ def put_meta(source_url: str, meta: Meta, meta_storage: MetaStorageBase) -> None
 
 
 def get_meta(
-    url: str, now: int, meta_storage: MetaStorageBase, *, logger
+    source_url: str, meta_storage: MetaStorageBase, *, logger: Logger
+) -> Optional[Meta]:
+    """
+    get a Meta instance from url
+    """
+
+    meta_pickled = meta_storage.get(source_url)
+    if meta_pickled is None:
+        return None
+    try:
+        meta: Meta = pickle.loads(meta_pickled)
+        return meta
+    except Exception:
+        logger.error(f"Invalid meta data: {norm_url}")
+        # Remove invalid entry
+        meta_storage.delete(source_url)
+        raise
+
+
+def get_valid_meta(
+    source_url: str, now: int, meta_storage: MetaStorageBase, *, logger: Logger
 ) -> Optional[Meta]:
     """
     get a valid Meta instance from url
@@ -18,23 +39,7 @@ def get_meta(
     :param now: current epoch for cache invalidation. When 0, no cache invalidation.
     """
 
-    # TODO: Implement url normalizer
-    norm_url = url
-
-    meta_pickled = meta_storage.get(norm_url)
-    if meta_pickled is None:
+    meta = get_meta(source_url, meta_storage, logger=logger)
+    if meta is None or (now > 0 and meta.expired_at < now):
         return None
-    try:
-        meta: Meta = pickle.loads(meta_pickled)
-        if now > 0 and meta.expired_at < now:
-            logger.info(
-                f"Invalidate meta data (expired_at={meta.expired_at}): {norm_url}"
-            )
-            meta_storage.delete(norm_url)
-            # TODO: Remove content
-            return None
-        return meta
-    except Exception:
-        # Remove invalid entry
-        logger.error(f"Invalid meta data: {norm_url}")
-        raise
+    return meta
