@@ -45,7 +45,9 @@ def calc_expired_at(
         if "no-store" in cache_control:
             return now + max_age_with_jitter(min_cache_age, 0)
         if "max-age" in cache_control:
-            return now + max_age_with_jitter(min_cache_age, int(cache_control["max-age"]))
+            return now + max_age_with_jitter(
+                min_cache_age, int(cache_control["max-age"])
+            )
         if "expires" in response_headers:
             # TODO: check date header to get the base date
             expires = mktime_tz(parsedate_tz(response_headers["expires"]))

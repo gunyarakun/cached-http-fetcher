@@ -33,7 +33,9 @@ class RateLimitFetcher:
                 self.fetch_count_start = time.time()
                 self.fetch_count = 0
 
-            fetched_response = cached_requests_get(url, old_meta, now, logger=self._logger)
+            fetched_response = cached_requests_get(
+                url, old_meta, now, logger=self._logger
+            )
 
             # fetched_response can be None when we don't need to fetch the cache
             if fetched_response is not None:

@@ -1,8 +1,14 @@
-import pytest
 import multiprocessing
+
 import cached_http_fetcher.entrypoint
+import pytest
 from cached_http_fetcher import Meta
-from cached_http_fetcher.entrypoint import fetch_urls, fetch_urls_single, url_queue_from_iterable, FetchWorker
+from cached_http_fetcher.entrypoint import (
+    FetchWorker,
+    fetch_urls,
+    fetch_urls_single,
+    url_queue_from_iterable,
+)
 from cached_http_fetcher.meta import get_meta
 from cached_http_fetcher.rate_limit_fetcher import RateLimitFetcher
 from cached_http_fetcher.storage import ContentMemoryStorage, MemoryStorage
@@ -86,11 +92,19 @@ def test_fetch_worker(url_list, mocker, logger):
         expired_at=0,
     )
 
-    mock_get_valid_meta = mocker.patch("cached_http_fetcher.entrypoint.get_valid_meta", return_value = meta)
-    mock_rate_limit_fetcher = mocker.patch("cached_http_fetcher.entrypoint.RateLimitFetcher")
+    mock_get_valid_meta = mocker.patch(
+        "cached_http_fetcher.entrypoint.get_valid_meta", return_value=meta
+    )
+    mock_rate_limit_fetcher = mocker.patch(
+        "cached_http_fetcher.entrypoint.RateLimitFetcher"
+    )
 
     fw = FetchWorker(
-        url_queue, response_queue, meta_memory_storage, max_fetch_count, fetch_count_window
+        url_queue,
+        response_queue,
+        meta_memory_storage,
+        max_fetch_count,
+        fetch_count_window,
     )
     fw.run()
     fw.close()
