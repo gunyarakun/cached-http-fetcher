@@ -49,18 +49,18 @@ def requests_get(url: str, headers: Dict[str, str]) -> Response:
 
 
 def cached_requests_get(
-    url: str, meta: Optional[Meta], now: int, *, logger: Logger
+    url: str, old_meta: Optional[Meta], now: int, *, logger: Logger
 ) -> Optional[FetchedResponse]:
     req_headers: Dict[str, str] = {}
 
-    if meta is not None:
-        if meta.expired_at > now:
+    if old_meta is not None:
+        if old_meta.expired_at > now:
             # already cached and valid, so don't request
             return None
-        if meta.etag is not None:
-            req_headers["If-None-Match"] = meta.etag
-        if meta.last_modified is not None:
-            req_headers["If-Modified-Since"] = meta.last_modified
+        if old_meta.etag is not None:
+            req_headers["If-None-Match"] = old_meta.etag
+        if old_meta.last_modified is not None:
+            req_headers["If-Modified-Since"] = old_meta.last_modified
 
     response = requests_get(url, req_headers)
 
@@ -68,4 +68,4 @@ def cached_requests_get(
         logger.warn(f"Cannot get {url}")
         return None
 
-    return FetchedResponse(url=url, fetched_at=now, response=response, meta=meta)
+    return FetchedResponse(url=url, fetched_at=now, response=response, old_meta=old_meta)

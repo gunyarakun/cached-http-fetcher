@@ -19,4 +19,4 @@ class FetchedResponse:
     url: str
     fetched_at: int
     response: requests.Request
-    meta: Optional[Meta]
+    old_meta: Optional[Meta]

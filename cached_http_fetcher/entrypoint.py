@@ -42,11 +42,11 @@ class FetchWorker(multiprocessing.Process):
             for url in url_set:
                 now = int(time.time())
                 try:
-                    meta = get_valid_meta(
+                    old_meta = get_valid_meta(
                         url, now, self._meta_storage, logger=self._logger
                     )
                     for fetched_response in self._rate_limit_fetcher.fetch(
-                        url, meta, now
+                        url, old_meta, now
                     ):
                         self._response_queue.put(fetched_response)
                 except Exception as ex:
@@ -82,7 +82,7 @@ class ContentWorker(multiprocessing.Process):
 
                 meta = put_content(
                     filtered_response,
-                    fetched_response.meta,
+                    fetched_response.old_meta,
                     fetched_response.fetched_at,
                     self._min_cache_age,
                     self._content_max_age,

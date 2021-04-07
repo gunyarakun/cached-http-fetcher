@@ -9,7 +9,7 @@ def test_rate_limit_fetcher(mocker: MockerFixture, logger):
     future = now + 3600
     url = "http://example.com/image1.jpg"
     mock_fetched_response = FetchedResponse(
-        url=url, fetched_at=now, response=None, meta=None
+        url=url, fetched_at=now, response=None, old_meta=None
     )
 
     mock = mocker.patch(
@@ -21,7 +21,7 @@ def test_rate_limit_fetcher(mocker: MockerFixture, logger):
     rate_limit_fetcher = RateLimitFetcher(
         max_fetch_count=0, fetch_count_window=0, logger=logger
     )
-    meta = Meta(
+    old_meta = Meta(
         cached_url=url,
         etag=None,
         last_modified=None,
@@ -29,6 +29,11 @@ def test_rate_limit_fetcher(mocker: MockerFixture, logger):
         fetched_at=past,
         expired_at=future,
     )
-    for fetched_response in rate_limit_fetcher.fetch(url, meta, now):
+    for fetched_response in rate_limit_fetcher.fetch(url, old_meta, now):
         assert fetched_response == mock_fetched_response
     mock.assert_called_once()
+    call_args = mock.call_args[0]
+    print(call_args)
+    assert call_args[0] == url
+    assert call_args[1] == old_meta
+    assert call_args[2] == now
