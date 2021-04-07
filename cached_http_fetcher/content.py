@@ -27,6 +27,15 @@ def parse_cache_control(cache_control: str) -> Dict[str, Optional[str]]:
     return directives
 
 
+def max_age_with_jitter(min_cache_age: int, max_age: int):
+    if max_age < min_cache_age:
+        # min_cache_age with jitter
+        return min_cache_age + random.randint(0, min_cache_age)
+    else:
+        # min_cache_age <= max_age <= max_age
+        return random.randint(min_cache_age, max_age)
+
+
 def calc_expired_at(
     response_headers: CaseInsensitiveDict, now: int, min_cache_age: int
 ) -> int:
@@ -34,12 +43,13 @@ def calc_expired_at(
         cache_control = parse_cache_control(response_headers.get("cache-control", ""))
 
         if "no-store" in cache_control:
-            return now + min_cache_age
+            return now + max_age_with_jitter(min_cache_age, 0)
         if "max-age" in cache_control:
-            return now + max(min_cache_age, int(cache_control["max-age"]))
+            return now + max_age_with_jitter(min_cache_age, int(cache_control["max-age"]))
         if "expires" in response_headers:
+            # TODO: check date header to get the base date
             expires = mktime_tz(parsedate_tz(response_headers["expires"]))
-            return now + max(expires - now, min_cache_age)
+            return now + max_age_with_jitter(min_cache_age, expires - now)
     except Exception:
         pass
     return now + min_cache_age
