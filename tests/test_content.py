@@ -36,7 +36,7 @@ def test_calc_expired_at():
     expired_at = calc_expired_at(
         CaseInsensitiveDict({"cache-control": "no-store"}), now, min_cache_age
     )
-    assert expired_at == now + min_cache_age
+    assert now + min_cache_age <= expired_at <= now + min_cache_age * 2
 
     # Cache-Control: max-age=xxxxx, larger than min_cache_age
     max_age = min_cache_age + 4346
@@ -50,13 +50,13 @@ def test_calc_expired_at():
     expired_at = calc_expired_at(
         CaseInsensitiveDict({"cache-control": f"max-age={max_age}"}), now, min_cache_age
     )
-    assert expired_at == now + min_cache_age
+    assert now + min_cache_age <= expired_at <= now + min_cache_age * 2
 
     # Expires: <now on RFC 2822>
     expired_at = calc_expired_at(
         CaseInsensitiveDict({"expires": formatdate(now)}), now, min_cache_age
     )
-    assert expired_at == now + min_cache_age
+    assert now + min_cache_age <= expired_at <= now + min_cache_age * 2
 
     # Expires: <future on RFC 2822>
     expires = now + min_cache_age + 434553

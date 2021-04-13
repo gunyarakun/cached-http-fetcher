@@ -24,7 +24,7 @@ def get_meta(
         meta: Meta = pickle.loads(meta_pickled)
         return meta
     except Exception:
-        logger.error(f"Invalid meta data: {norm_url}")
+        logger.error(f"Invalid meta data: {source_url}")
         # Remove invalid entry
         meta_storage.delete(source_url)
         raise
