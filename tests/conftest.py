@@ -13,49 +13,22 @@ sys.path.append(
 
 URLS = {
     "http://domain1.example.com/image.jpg": {
-        "width": 100,
-        "height": 100,
-        "format": "JPEG",
     },
     "https://domain1.example.com/image.jpg": {
-        "width": 100,
-        "height": 100,
-        "format": "JPEG",
     },
     "https://domain1.example.com/large_image.jpg": {
-        "width": 2000,
-        "height": 2000,
-        "format": "JPEG",
     },
     "https://domain1.example.com/path/image.jpg": {
-        "width": 100,
-        "height": 100,
-        "format": "JPEG",
     },
     "https://domain2.example.com/image.jpg": {
-        "width": 100,
-        "height": 100,
-        "format": "JPEG",
     },
     "https://domain3.example.com/image.jpg": {
-        "width": 100,
-        "height": 100,
-        "format": "JPEG",
     },
     "https://domain3.example.com/image2.jpg": {
-        "width": 100,
-        "height": 100,
-        "format": "JPEG",
     },
     "https://domain3.example.com/image3.jpg": {
-        "width": 100,
-        "height": 100,
-        "format": "JPEG",
     },
     "https://domain3.example.com/image4.jpg": {
-        "width": 100,
-        "height": 100,
-        "format": "JPEG",
     },
 }
 
