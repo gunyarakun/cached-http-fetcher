@@ -6,7 +6,7 @@ from typing import Dict, Optional
 from requests import Response
 from requests.structures import CaseInsensitiveDict
 
-from .model import Meta
+from .model import FetchedResponse, Meta
 from .storage import ContentStorageBase
 
 
@@ -59,14 +59,16 @@ def calc_expired_at(
 
 
 def put_content(
-    response: Response,
-    old_meta: Optional[Meta],
-    fetched_at: int,
+    fetched_response: FetchedResponse,
     min_cache_age: int,
     content_max_age: int,
     content_storage: ContentStorageBase,
 ) -> Meta:
-    source_url = response.url
+    source_url = fetched_response.url
+    response = fetched_response.response
+    old_meta = fetched_response.old_meta
+    fetched_at = fetched_response.fetched_at
+
     cached_url = content_storage.cached_url(source_url)
 
     # TODO: Improve handling 304

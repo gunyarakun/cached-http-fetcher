@@ -165,3 +165,36 @@ def test_fetch_urls_memory(urls, logger, requests_mock):
         num_content_processes=1,
         logger=logger,
     )
+
+
+def test_fetch_urls_redirection(logger, requests_mock):
+    original_url = "http://example.com/original"
+    redirected_url = "https://content.example.com/redirected"
+
+    def request_callback(request):
+        if request.url == redirected_url:
+            return 200, (), b"content"
+        else:
+            return 301, {"location": redirected_url}, None
+
+    requests_mock.add_callback(requests_mock.GET, original_url, request_callback)
+    requests_mock.add_callback(requests_mock.GET, redirected_url, request_callback)
+
+    meta_memory_storage = MemoryStorage()
+    content_memory_storage = ContentMemoryStorage()
+
+    fetch_urls_single(
+        [original_url],
+        meta_storage=meta_memory_storage,
+        content_storage=content_memory_storage,
+        logger=logger,
+    )
+
+    meta = get_meta(redirected_url, meta_storage=meta_memory_storage, logger=logger)
+    assert meta is None
+    meta = get_meta(original_url, meta_storage=meta_memory_storage, logger=logger)
+    assert meta.cached_url == "memory:http://example.com/original"
+
+    content_storage = content_memory_storage.dict_for_debug()
+    print(content_storage)
+    assert content_storage[original_url].value == b"content"

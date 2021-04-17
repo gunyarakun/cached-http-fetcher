@@ -12,24 +12,15 @@ sys.path.append(
 )
 
 URLS = {
-    "http://domain1.example.com/image.jpg": {
-    },
-    "https://domain1.example.com/image.jpg": {
-    },
-    "https://domain1.example.com/large_image.jpg": {
-    },
-    "https://domain1.example.com/path/image.jpg": {
-    },
-    "https://domain2.example.com/image.jpg": {
-    },
-    "https://domain3.example.com/image.jpg": {
-    },
-    "https://domain3.example.com/image2.jpg": {
-    },
-    "https://domain3.example.com/image3.jpg": {
-    },
-    "https://domain3.example.com/image4.jpg": {
-    },
+    "http://domain1.example.com/image.jpg": {},
+    "https://domain1.example.com/image.jpg": {},
+    "https://domain1.example.com/large_image.jpg": {},
+    "https://domain1.example.com/path/image.jpg": {},
+    "https://domain2.example.com/image.jpg": {},
+    "https://domain3.example.com/image.jpg": {},
+    "https://domain3.example.com/image2.jpg": {},
+    "https://domain3.example.com/image3.jpg": {},
+    "https://domain3.example.com/image4.jpg": {},
 }
 
 for url, obj in URLS.items():

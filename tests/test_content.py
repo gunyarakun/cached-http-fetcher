@@ -5,6 +5,7 @@ from cached_http_fetcher.content import (
     parse_cache_control,
     put_content,
 )
+from cached_http_fetcher.model import FetchedResponse
 from cached_http_fetcher.storage import ContentMemoryStorage
 from requests import Response
 from requests.structures import CaseInsensitiveDict
@@ -83,7 +84,10 @@ def test_put_content():
     response._content_consumed = True
     response._content = content
     meta = put_content(
-        response, None, now, min_cache_age, content_max_age, content_storage
+        FetchedResponse(url, now, response, None),
+        min_cache_age,
+        content_max_age,
+        content_storage,
     )
     assert len(content_storage_dict) == 1
     assert content_storage_dict[url].value == content
@@ -101,7 +105,10 @@ def test_put_content():
     response.status_code = 200
     response.headers["Content-Type"] = "image/jpeg"
     meta = put_content(
-        response, None, now, min_cache_age, content_max_age, content_storage
+        FetchedResponse(url, now, response, None),
+        min_cache_age,
+        content_max_age,
+        content_storage,
     )
     assert content_storage_dict[url].content_type == "image/jpeg"
 
@@ -112,7 +119,10 @@ def test_put_content():
     response.status_code = 200
     response.headers["ETag"] = etag
     meta = put_content(
-        response, meta, now, min_cache_age, content_max_age, content_storage
+        FetchedResponse(url, now, response, meta),
+        min_cache_age,
+        content_max_age,
+        content_storage,
     )
     assert meta.etag == etag
 
@@ -123,7 +133,10 @@ def test_put_content():
     response.status_code = 200
     response.headers["Last-Modified"] = last_modified
     meta = put_content(
-        response, meta, now, min_cache_age, content_max_age, content_storage
+        FetchedResponse(url, now, response, meta),
+        min_cache_age,
+        content_max_age,
+        content_storage,
     )
     assert meta.last_modified == last_modified
 
@@ -134,7 +147,10 @@ def test_put_content():
     response.url = url
     response.status_code = 304
     meta = put_content(
-        response, meta, now, min_cache_age, content_max_age, content_storage
+        FetchedResponse(url, now, response, meta),
+        min_cache_age,
+        content_max_age,
+        content_storage,
     )
     assert len(content_storage_dict) == 0  # Not saved
     assert meta.cached_url == content_storage.cached_url(url)
@@ -146,7 +162,10 @@ def test_put_content():
     response.url = url
     response.status_code = 500
     meta = put_content(
-        response, None, now, min_cache_age, content_max_age, content_storage
+        FetchedResponse(url, now, response, None),
+        min_cache_age,
+        content_max_age,
+        content_storage,
     )
     assert len(content_storage_dict) == 0  # Not saved
     assert meta.cached_url is None

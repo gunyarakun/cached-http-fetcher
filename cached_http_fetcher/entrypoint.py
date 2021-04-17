@@ -77,18 +77,13 @@ class ContentWorker(multiprocessing.Process):
                 break
 
             try:
-                # TODO: Apply filters to the cache
-                filtered_response = fetched_response.response
-
                 meta = put_content(
-                    filtered_response,
-                    fetched_response.old_meta,
-                    fetched_response.fetched_at,
+                    fetched_response,
                     self._min_cache_age,
                     self._content_max_age,
                     self._content_storage,
                 )
-                put_meta(filtered_response.url, meta, self._meta_storage)
+                put_meta(fetched_response.url, meta, self._meta_storage)
             except Exception as ex:
                 self._logger.exception("Error on ContentWorker: %s", ex)
 
