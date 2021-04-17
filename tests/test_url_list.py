@@ -1,7 +1,9 @@
+from typing import List
+
 from cached_http_fetcher.url_list import urls_per_domain
 
 
-def test_url_list(url_list):
+def test_url_list(url_list: List[str]) -> None:
     assert len(url_list) == 9
 
     result = urls_per_domain(url_list)

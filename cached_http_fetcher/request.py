@@ -22,10 +22,10 @@ MAX_TRIES = 4
 TIMEOUT = 10
 
 
-def requests_get(url: str, headers: Dict[str, str]) -> Response:
+def requests_get(url: str, headers: Dict[str, str]) -> Optional[Response]:
     headers["User-Agent"] = USER_AGENT
     tries = 0
-    wait = 1
+    wait = 1.0
     while tries < MAX_TRIES:
         try:
             response = requests.get(
@@ -46,6 +46,7 @@ def requests_get(url: str, headers: Dict[str, str]) -> Response:
         wait *= 2
         wait += random.uniform(0, wait)  # jitter
         tries += 1
+    return None
 
 
 def cached_requests_get(

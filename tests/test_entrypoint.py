@@ -1,7 +1,12 @@
+import logging
 import multiprocessing
+from typing import Dict, List, Mapping, Optional, Tuple
 
 import cached_http_fetcher.entrypoint
+import mock
 import pytest
+import requests
+import responses
 from cached_http_fetcher import Meta
 from cached_http_fetcher.entrypoint import (
     FetchWorker,
@@ -10,13 +15,20 @@ from cached_http_fetcher.entrypoint import (
     url_queue_from_iterable,
 )
 from cached_http_fetcher.meta import get_meta
+from cached_http_fetcher.model import FetchedResponse
 from cached_http_fetcher.rate_limit_fetcher import RateLimitFetcher
 from cached_http_fetcher.storage import ContentMemoryStorage, MemoryStorage
 
+from .model import FixtureURLS
 
-def test_fetch_urls_single_memory(urls, logger, requests_mock):
+
+def test_fetch_urls_single_memory(
+    urls: FixtureURLS,
+    logger: logging.Logger,
+    requests_mock: responses.RequestsMock,
+) -> None:
     for url, obj in urls.items():
-        requests_mock.add(requests_mock.GET, url, body=obj["content"])
+        requests_mock.add(requests_mock.GET, url, body=obj.content)
 
     url_list = urls.keys()
 
@@ -45,6 +57,7 @@ def test_fetch_urls_single_memory(urls, logger, requests_mock):
     # get cached urls
     for url in url_list:
         meta = get_meta(url, meta_storage=meta_memory_storage, logger=logger)
+        assert meta is not None
         assert meta.cached_url == content_memory_storage.cached_url(url)
 
     # all responses must be cached
@@ -73,9 +86,13 @@ def test_fetch_urls_single_memory(urls, logger, requests_mock):
     assert len(content_storage) == len(urls)
 
 
-def test_fetch_worker(url_list, mocker, logger):
+def test_fetch_worker(
+    url_list: List[str], mocker: mock.MagicMock, logger: logging.Logger
+) -> None:
     url_queue = url_queue_from_iterable(url_list, logger)
-    response_queue = multiprocessing.Queue()
+    response_queue: multiprocessing.Queue[
+        Optional[FetchedResponse]
+    ] = multiprocessing.Queue()
     url_queue.put(None)
 
     meta_memory_storage = MemoryStorage()
@@ -113,16 +130,15 @@ def test_fetch_worker(url_list, mocker, logger):
     assert len(mock_rate_limit_fetcher.mock_calls) == len(url_list) * 2 + 1
 
 
-def test_content_worker():
-    # TODO:
-    pass
-
-
 @pytest.mark.skip(reason="not working well")
-def test_fetch_urls_memory(urls, logger, requests_mock):
+def test_fetch_urls_memory(
+    urls: FixtureURLS,
+    logger: logging.Logger,
+    requests_mock: responses.RequestsMock,
+) -> None:
     # Almost all logics are tested in test_fetch_urls_single
     for url, obj in urls.items():
-        requests_mock.add(requests_mock.GET, url, body=obj["content"])
+        requests_mock.add(requests_mock.GET, url, body=obj.content)
 
     url_list = urls.keys()
 
@@ -167,15 +183,19 @@ def test_fetch_urls_memory(urls, logger, requests_mock):
     )
 
 
-def test_fetch_urls_redirection(logger, requests_mock):
+def test_fetch_urls_redirection(
+    logger: logging.Logger, requests_mock: responses.RequestsMock
+) -> None:
     original_url = "http://example.com/original"
     redirected_url = "https://content.example.com/redirected"
 
-    def request_callback(request):
+    def request_callback(
+        request: requests.Request,
+    ) -> Tuple[int, Mapping[str, str], bytes]:
         if request.url == redirected_url:
-            return 200, (), b"content"
+            return 200, {}, b"content"
         else:
-            return 301, {"location": redirected_url}, None
+            return 301, {"location": redirected_url}, b""
 
     requests_mock.add_callback(requests_mock.GET, original_url, request_callback)
     requests_mock.add_callback(requests_mock.GET, redirected_url, request_callback)
@@ -193,6 +213,7 @@ def test_fetch_urls_redirection(logger, requests_mock):
     meta = get_meta(redirected_url, meta_storage=meta_memory_storage, logger=logger)
     assert meta is None
     meta = get_meta(original_url, meta_storage=meta_memory_storage, logger=logger)
+    assert meta is not None
     assert meta.cached_url == "memory:http://example.com/original"
 
     content_storage = content_memory_storage.dict_for_debug()

@@ -1,7 +1,7 @@
 import hashlib
 import random
 from email.utils import mktime_tz, parsedate_tz
-from typing import Dict, Optional
+from typing import Dict, Mapping, Optional
 
 from requests import Response
 from requests.structures import CaseInsensitiveDict
@@ -28,7 +28,7 @@ def parse_cache_control(cache_control: str) -> Dict[str, Optional[str]]:
     return directives
 
 
-def max_age_with_jitter(min_cache_age: int, max_age: int):
+def max_age_with_jitter(min_cache_age: int, max_age: int) -> int:
     if max_age < min_cache_age:
         # min_cache_age with jitter
         return min_cache_age + random.randint(0, min_cache_age)
@@ -38,21 +38,23 @@ def max_age_with_jitter(min_cache_age: int, max_age: int):
 
 
 def calc_expired_at(
-    response_headers: CaseInsensitiveDict, now: int, min_cache_age: int
+    response_headers: Mapping[str, str], now: int, min_cache_age: int
 ) -> int:
     try:
         cache_control = parse_cache_control(response_headers.get("cache-control", ""))
 
         if "no-store" in cache_control:
             return now + max_age_with_jitter(min_cache_age, 0)
-        if "max-age" in cache_control:
+        if "max-age" in cache_control and cache_control["max-age"] is not None:
             return now + max_age_with_jitter(
                 min_cache_age, int(cache_control["max-age"])
             )
         if "expires" in response_headers:
             # TODO: check date header to get the base date
-            expires = mktime_tz(parsedate_tz(response_headers["expires"]))
-            return now + max_age_with_jitter(min_cache_age, expires - now)
+            parsed_expires = parsedate_tz(response_headers["expires"])
+            if parsed_expires is not None:
+                expires = mktime_tz(parsed_expires)
+                return now + max_age_with_jitter(min_cache_age, expires - now)
     except Exception:
         pass
     return now + min_cache_age
@@ -90,6 +92,8 @@ def put_content(
         else:
             if old_meta is None:
                 raise ValueError("old meta must be set on 304")
+            elif old_meta.content_sha1 is None:
+                raise ValueError("old meta must have content_sha1")
             content_sha1 = old_meta.content_sha1
 
         expired_at = calc_expired_at(response_headers, fetched_at, min_cache_age)

@@ -1,10 +1,11 @@
 import multiprocessing
 import time
 from logging import Logger
-from typing import Iterable, Optional
+from typing import Iterable, Optional, Set
 
 from .content import put_content
 from .meta import get_valid_meta, put_meta
+from .model import FetchedResponse
 from .rate_limit_fetcher import RateLimitFetcher
 from .storage import ContentStorageBase, MetaStorageBase
 from .url_list import urls_per_domain
@@ -16,8 +17,8 @@ DEFAULT_CONTENT_MAX_AGE = 3600
 class FetchWorker(multiprocessing.Process):
     def __init__(
         self,
-        url_queue,
-        response_queue,
+        url_queue: "multiprocessing.Queue[Optional[Set[str]]]",
+        response_queue: "multiprocessing.Queue[Optional[FetchedResponse]]",
         meta_storage: MetaStorageBase,
         max_fetch_count: int,
         fetch_count_window: int,
@@ -33,7 +34,7 @@ class FetchWorker(multiprocessing.Process):
             logger=self._logger,
         )
 
-    def run(self):
+    def run(self) -> None:
         while True:
             url_set = self._url_queue.get()
             if url_set is None:
@@ -56,7 +57,7 @@ class FetchWorker(multiprocessing.Process):
 class ContentWorker(multiprocessing.Process):
     def __init__(
         self,
-        response_queue,
+        response_queue: "multiprocessing.Queue[Optional[FetchedResponse]]",
         min_cache_age: int,
         content_max_age: int,
         meta_storage: MetaStorageBase,
@@ -70,7 +71,7 @@ class ContentWorker(multiprocessing.Process):
         self._content_storage = content_storage
         self._logger = multiprocessing.get_logger()
 
-    def run(self):
+    def run(self) -> None:
         while True:
             fetched_response = self._response_queue.get()
             if fetched_response is None:
@@ -90,9 +91,9 @@ class ContentWorker(multiprocessing.Process):
 
 def url_queue_from_iterable(
     url_list: Iterable[str], logger: Logger
-) -> multiprocessing.Queue:
+) -> "multiprocessing.Queue[Optional[Set[str]]]":
     url_dict = urls_per_domain(url_list)
-    url_queue = multiprocessing.Queue()
+    url_queue: "multiprocessing.Queue[Optional[Set[str]]]" = multiprocessing.Queue()
     domain_count = 0
     url_count = 0
     for _domain, url_set in url_dict.items():
@@ -120,7 +121,9 @@ def fetch_urls_single(
     A single process version of fetch_urls()
     """
     url_queue = url_queue_from_iterable(url_list, logger)
-    response_queue = multiprocessing.Queue()
+    response_queue: multiprocessing.Queue[
+        Optional[FetchedResponse]
+    ] = multiprocessing.Queue()
 
     url_queue.put(None)
     fw = FetchWorker(
@@ -164,49 +167,51 @@ def fetch_urls(
     :param logger: Logger
     """
     fetch_jobs = []
-    optimize_jobs = []
+    content_jobs = []
     url_queue = url_queue_from_iterable(url_list, logger)
 
-    response_queue = multiprocessing.Queue()
+    response_queue: multiprocessing.Queue[
+        Optional[FetchedResponse]
+    ] = multiprocessing.Queue()
 
     num_fetch_processes = num_fetch_processes or multiprocessing.cpu_count() * 4
     num_content_processes = num_content_processes or multiprocessing.cpu_count()
 
     for _ in range(num_fetch_processes):
-        p = FetchWorker(
+        fw = FetchWorker(
             url_queue,
             response_queue,
             meta_storage,
             rate_limit_count,
             rate_limit_seconds,
         )
-        fetch_jobs.append(p)
-        p.start()
+        fetch_jobs.append(fw)
+        fw.start()
 
     for _ in range(num_content_processes):
-        p = ContentWorker(
+        cw = ContentWorker(
             response_queue,
             min_cache_age,
             content_max_age,
             meta_storage,
             content_storage,
         )
-        optimize_jobs.append(p)
-        p.start()
+        content_jobs.append(cw)
+        cw.start()
 
     for _ in fetch_jobs:
         url_queue.put(None)
 
     # Wait for fetching all the caches
-    for j in fetch_jobs:
-        j.join()
+    for fj in fetch_jobs:
+        fj.join()
 
     # Now nobody puts an item into `response_queue`, so we adds a terminator.
-    for _ in optimize_jobs:
+    for _ in content_jobs:
         response_queue.put(None)
 
     # Wait for optimizing all the caches
-    for j in optimize_jobs:
-        j.join()
+    for cj in content_jobs:
+        cj.join()
 
     logger.info("fetched")

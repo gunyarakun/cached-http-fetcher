@@ -1,15 +1,18 @@
+import logging
+
 from cached_http_fetcher.model import FetchedResponse, Meta
 from cached_http_fetcher.rate_limit_fetcher import RateLimitFetcher
 from pytest_mock import MockerFixture
+from requests import Response
 
 
-def test_rate_limit_fetcher(mocker: MockerFixture, logger):
+def test_rate_limit_fetcher(mocker: MockerFixture, logger: logging.Logger) -> None:
     now = 1617355068
     past = now - 3600
     future = now + 3600
     url = "http://example.com/image1.jpg"
     mock_fetched_response = FetchedResponse(
-        url=url, fetched_at=now, response=None, old_meta=None
+        url=url, fetched_at=now, response=Response(), old_meta=None
     )
 
     mock = mocker.patch(

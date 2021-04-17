@@ -11,7 +11,7 @@ from requests import Response
 from requests.structures import CaseInsensitiveDict
 
 
-def test_parse_cache_control():
+def test_parse_cache_control() -> None:
     directives = parse_cache_control("no-cache")
     assert "no-cache" in directives
     assert directives["no-cache"] is None
@@ -29,7 +29,7 @@ def test_parse_cache_control():
     assert directives["max-stale"] == "23456"
 
 
-def test_calc_expired_at():
+def test_calc_expired_at() -> None:
     now = 1617355068
     min_cache_age = 47387
 
@@ -67,7 +67,7 @@ def test_calc_expired_at():
     assert now + min_cache_age <= expired_at <= expires
 
 
-def test_put_content():
+def test_put_content() -> None:
     now = 1617355068
     min_cache_age = 47387
     content_max_age = 5487

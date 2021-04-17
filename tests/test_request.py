@@ -1,8 +1,13 @@
+import logging
+
+import responses
 from cached_http_fetcher.model import Meta
 from cached_http_fetcher.request import cached_requests_get
 
 
-def test_cached_requests_get(requests_mock, logger):
+def test_cached_requests_get(
+    requests_mock: responses.RequestsMock, logger: logging.Logger
+) -> None:
     now = 1617355068
     past = now - 3600
     future = now + 3600

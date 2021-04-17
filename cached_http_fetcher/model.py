@@ -18,5 +18,5 @@ class Meta:
 class FetchedResponse:
     url: str
     fetched_at: int
-    response: requests.Request
+    response: requests.Response
     old_meta: Optional[Meta]

@@ -1,9 +1,11 @@
+import logging
+
 from cached_http_fetcher.meta import get_valid_meta, put_meta
 from cached_http_fetcher.model import Meta
 from cached_http_fetcher.storage import MemoryStorage
 
 
-def test_get_valid_meta(logger):
+def test_get_valid_meta(logger: logging.Logger) -> None:
     now = 1617355068
     future = now + 3600
     past = now - 3600

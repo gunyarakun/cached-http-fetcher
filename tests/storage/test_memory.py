@@ -1,7 +1,7 @@
 from cached_http_fetcher.storage.memory import MemoryStorage
 
 
-def test_memory_storage():
+def test_memory_storage() -> None:
     memory_storage = MemoryStorage()
 
     memory_storage.put("key1", b"value1")
