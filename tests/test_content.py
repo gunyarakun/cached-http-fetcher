@@ -1,3 +1,4 @@
+import logging
 from email.utils import formatdate
 
 from cached_http_fetcher.content import (
@@ -67,7 +68,7 @@ def test_calc_expired_at() -> None:
     assert now + min_cache_age <= expired_at <= expires
 
 
-def test_put_content() -> None:
+def test_put_content(logger: logging.Logger) -> None:
     now = 1617355068
     min_cache_age = 47387
     content_max_age = 5487
@@ -88,11 +89,13 @@ def test_put_content() -> None:
         min_cache_age,
         content_max_age,
         content_storage,
+        logger=logger,
     )
     assert len(content_storage_dict) == 1
     assert content_storage_dict[url].value == content
     assert content_storage_dict[url].content_type is None
     assert content_storage_dict[url].cache_control == f"max-age={content_max_age}"
+    assert meta is not None
     assert meta.cached_url == content_storage.cached_url(url)
     assert meta.etag is None
     assert meta.last_modified is None
@@ -109,7 +112,9 @@ def test_put_content() -> None:
         min_cache_age,
         content_max_age,
         content_storage,
+        logger=logger,
     )
+    assert meta is not None
     assert content_storage_dict[url].content_type == "image/jpeg"
 
     # With etag
@@ -123,7 +128,9 @@ def test_put_content() -> None:
         min_cache_age,
         content_max_age,
         content_storage,
+        logger=logger,
     )
+    assert meta is not None
     assert meta.etag == etag
 
     # With last-modified
@@ -137,7 +144,9 @@ def test_put_content() -> None:
         min_cache_age,
         content_max_age,
         content_storage,
+        logger=logger,
     )
+    assert meta is not None
     assert meta.last_modified == last_modified
 
     # 304
@@ -151,7 +160,9 @@ def test_put_content() -> None:
         min_cache_age,
         content_max_age,
         content_storage,
+        logger=logger,
     )
+    assert meta is not None
     assert len(content_storage_dict) == 0  # Not saved
     assert meta.cached_url == content_storage.cached_url(url)
 
@@ -166,6 +177,8 @@ def test_put_content() -> None:
         min_cache_age,
         content_max_age,
         content_storage,
+        logger=logger,
     )
+    assert meta is not None
     assert len(content_storage_dict) == 0  # Not saved
     assert meta.cached_url is None

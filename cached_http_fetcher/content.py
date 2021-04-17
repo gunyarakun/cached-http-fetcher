@@ -1,4 +1,5 @@
 import hashlib
+import logging
 import random
 from email.utils import mktime_tz, parsedate_tz
 from typing import Dict, Mapping, Optional
@@ -65,7 +66,9 @@ def put_content(
     min_cache_age: int,
     content_max_age: int,
     content_storage: ContentStorageBase,
-) -> Meta:
+    *,
+    logger: logging.Logger,
+) -> Optional[Meta]:
     source_url = fetched_response.url
     response = fetched_response.response
     old_meta = fetched_response.old_meta
@@ -83,12 +86,17 @@ def put_content(
 
             if old_meta is None or old_meta.content_sha1 != content_sha1:
                 content_type = response_headers.get("content-type", None)
-                content_storage.put_content(
-                    source_url,
-                    content,
-                    content_type=content_type,
-                    cache_control=f"max-age={content_max_age}",
-                )
+                try:
+                    content_storage.put_content(
+                        source_url,
+                        content,
+                        content_type=content_type,
+                        cache_control=f"max-age={content_max_age}",
+                    )
+                except Exception:
+                    # Meta shouldn't be saved
+                    logger.warning(f"Content storage throws an exception: {source_url}")
+                    return None
         else:
             if old_meta is None:
                 raise ValueError("old meta must be set on 304")
