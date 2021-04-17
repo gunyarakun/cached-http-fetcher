@@ -1,9 +1,9 @@
 import logging
 import multiprocessing
 from typing import Dict, List, Mapping, Optional, Tuple
+from unittest import mock
 
 import cached_http_fetcher.entrypoint
-import mock
 import pytest
 import requests
 import responses
