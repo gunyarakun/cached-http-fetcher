@@ -114,12 +114,4 @@ def put_content(
             fetched_at=fetched_at,
             expired_at=expired_at,
         )
-    # meta for non cacheable content
-    return Meta(
-        cached_url=None,
-        etag=None,
-        last_modified=None,
-        content_sha1=None,
-        fetched_at=fetched_at,
-        expired_at=fetched_at + min_cache_age,
-    )
+    return None

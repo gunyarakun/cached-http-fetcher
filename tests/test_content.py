@@ -179,6 +179,5 @@ def test_put_content(logger: logging.Logger) -> None:
         content_storage,
         logger=logger,
     )
-    assert meta is not None
+    assert meta is None
     assert len(content_storage_dict) == 0  # Not saved
-    assert meta.cached_url is None

@@ -6,8 +6,13 @@ from .model import Meta
 from .storage import MetaStorageBase
 
 
-def put_meta(source_url: str, meta: Meta, meta_storage: MetaStorageBase) -> None:
-    meta_storage.put(source_url, pickle.dumps(meta))
+def put_meta(
+    source_url: str, meta: Optional[Meta], meta_storage: MetaStorageBase
+) -> None:
+    if meta is None:
+        meta_storage.delete(source_url)
+    else:
+        meta_storage.put(source_url, pickle.dumps(meta))
 
 
 def get_meta(

@@ -85,8 +85,7 @@ class ContentWorker(multiprocessing.Process):
                     self._content_storage,
                     logger=self._logger,
                 )
-                if meta is not None:
-                    put_meta(fetched_response.url, meta, self._meta_storage)
+                put_meta(fetched_response.url, meta, self._meta_storage)
             except Exception as ex:
                 self._logger.exception("Error on ContentWorker: %s", ex)
 
