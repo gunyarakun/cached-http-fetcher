@@ -1,8 +1,7 @@
-import hashlib
 import os
 import sys
 from logging import DEBUG, Logger, StreamHandler, getLogger
-from typing import Dict, Generator, Iterable, Optional
+from typing import Generator, Iterable
 
 import pytest
 import responses as responses_

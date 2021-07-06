@@ -82,7 +82,6 @@ def test_put_content(logger: logging.Logger) -> None:
     response = Response()
     response.url = url
     response.status_code = 200
-    response._content_consumed = True
     response._content = content
     meta = put_content(
         FetchedResponse(url, now, response, None),

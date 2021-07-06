@@ -25,7 +25,7 @@ TIMEOUT = 10
 
 
 class TLSHTTPAdapter(requests.adapters.HTTPAdapter):
-    def init_poolmanager(self, connections, maxsize, block=False):
+    def init_poolmanager(self, connections, maxsize, block=False):  # type: ignore
         ctx = ssl.create_default_context()
         ctx.set_ciphers("DEFAULT@SECLEVEL=1")
         self.poolmanager = poolmanager.PoolManager(

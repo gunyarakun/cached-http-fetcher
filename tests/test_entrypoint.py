@@ -1,9 +1,8 @@
 import logging
 import multiprocessing
-from typing import Dict, List, Mapping, Optional, Tuple
+from typing import List, Mapping, Optional, Tuple
 from unittest import mock
 
-import cached_http_fetcher.entrypoint
 import pytest
 import requests
 import responses
@@ -16,7 +15,6 @@ from cached_http_fetcher.entrypoint import (
 )
 from cached_http_fetcher.meta import get_meta
 from cached_http_fetcher.model import FetchedResponse
-from cached_http_fetcher.rate_limit_fetcher import RateLimitFetcher
 from cached_http_fetcher.storage import ContentMemoryStorage, MemoryStorage
 
 from .model import FixtureURLS
@@ -162,7 +160,7 @@ def test_fetch_urls_memory(
     meta_storage = meta_memory_storage.dict_for_debug()
     content_storage = content_memory_storage.dict_for_debug()
 
-    assert requests_mock.call_count == len(urls)
+    assert len(requests_mock.calls) == len(urls)
     assert len(meta_storage) == len(urls)
     assert len(content_storage) == len(urls)
 
@@ -190,15 +188,19 @@ def test_fetch_urls_redirection(
     redirected_url = "https://content.example.com/redirected"
 
     def request_callback(
-        request: requests.Request,
+        request: requests.PreparedRequest,
     ) -> Tuple[int, Mapping[str, str], bytes]:
         if request.url == redirected_url:
             return 200, {}, b"content"
         else:
             return 301, {"location": redirected_url}, b""
 
-    requests_mock.add_callback(requests_mock.GET, original_url, request_callback)
-    requests_mock.add_callback(requests_mock.GET, redirected_url, request_callback)
+    requests_mock.add_callback(
+        requests_mock.GET, original_url, callback=request_callback
+    )
+    requests_mock.add_callback(
+        requests_mock.GET, redirected_url, callback=request_callback
+    )
 
     meta_memory_storage = MemoryStorage()
     content_memory_storage = ContentMemoryStorage()
