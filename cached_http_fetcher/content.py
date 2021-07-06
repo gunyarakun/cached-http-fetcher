@@ -4,7 +4,6 @@ import random
 from email.utils import mktime_tz, parsedate_tz
 from typing import Dict, Mapping, Optional
 
-from requests import Response
 from requests.structures import CaseInsensitiveDict
 
 from .model import FetchedResponse, Meta

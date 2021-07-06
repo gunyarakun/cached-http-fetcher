@@ -1,4 +1,5 @@
 import random
+import ssl
 import time
 import warnings
 from logging import Logger
@@ -7,6 +8,7 @@ from typing import Dict, Optional
 import requests
 from requests import Response
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
+from urllib3 import poolmanager
 
 from .model import FetchedResponse, Meta
 
@@ -22,13 +24,28 @@ MAX_TRIES = 4
 TIMEOUT = 10
 
 
+class TLSHTTPAdapter(requests.adapters.HTTPAdapter):
+    def init_poolmanager(self, connections, maxsize, block=False):
+        ctx = ssl.create_default_context()
+        ctx.set_ciphers("DEFAULT@SECLEVEL=1")
+        self.poolmanager = poolmanager.PoolManager(
+            num_pools=connections,
+            maxsize=maxsize,
+            block=block,
+            ssl_version=ssl.PROTOCOL_TLS,
+            ssl_context=ctx,
+        )
+
+
 def requests_get(url: str, headers: Dict[str, str]) -> Optional[Response]:
     headers["User-Agent"] = USER_AGENT
     tries = 0
     wait = 1.0
     while tries < MAX_TRIES:
         try:
-            response = requests.get(
+            session = requests.session()
+            session.mount("https://", TLSHTTPAdapter())
+            response = session.get(
                 url,
                 headers=headers,
                 verify=False,
