@@ -17,7 +17,7 @@ The standard way to use this library is store metadata in Redis and store images
 
 You have to implement your own meta storage extends `MetaStorageBase` with Redis and content storage extends `ContentStorageBase` with S3.
 
-The whole sample code is following.
+The whole sample code is following, or see and execute [fetch\_with\_memory.py](examples/fetch_with_memory.py).
 
 ```python
 import boto3
